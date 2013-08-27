@@ -28,6 +28,7 @@ import hudson.model.AbstractBuild;
 import hudson.model.BuildListener;
 import hudson.model.Result;
 import hudson.util.FormValidation;
+import org.apache.commons.lang.StringUtils;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.QueryParameter;
 
@@ -40,6 +41,7 @@ import java.util.UUID;
 
 /**
  * Launches a Qubell instance and saves instance id. Has to be executed before {@link RunCommandBuilder} or {@link DestroyInstanceBuilder}
+ *
  * @author Alex Krupnov
  */
 public class StartInstanceBuilder extends QubellBuilder {
@@ -52,6 +54,7 @@ public class StartInstanceBuilder extends QubellBuilder {
 
     /**
      * Manifest file path, relative to project workspace
+     *
      * @return value of path, exposed for Jelly
      */
     public String getManifestRelativePath() {
@@ -60,6 +63,7 @@ public class StartInstanceBuilder extends QubellBuilder {
 
     /**
      * Qubell environment id, optional
+     *
      * @return environment id
      */
     public String getEnvironmentId() {
@@ -68,6 +72,7 @@ public class StartInstanceBuilder extends QubellBuilder {
 
     /**
      * Qubell application id to launch, required
+     *
      * @return value of application id
      */
     public String getApplicationId() {
@@ -76,6 +81,7 @@ public class StartInstanceBuilder extends QubellBuilder {
 
     /**
      * Extra parameters as JSON object string representation
+     *
      * @return value of json string
      */
     public String getExtraParameters() {
@@ -84,12 +90,13 @@ public class StartInstanceBuilder extends QubellBuilder {
 
     /**
      * Data bound constructor, executed by Jenkins
+     *
      * @param manifestRelativePath see {@link #getManifestRelativePath()}
-     * @param timeout see {@link #getTimeout()}
-     * @param environmentId see {@link #getEnvironmentId()}
-     * @param applicationId see {@link #getApplicationId()}
-     * @param extraParameters see {@link #getExtraParameters()}
-     * @param outputFilePath path to output file
+     * @param timeout              see {@link #getTimeout()}
+     * @param environmentId        see {@link #getEnvironmentId()}
+     * @param applicationId        see {@link #getApplicationId()}
+     * @param extraParameters      see {@link #getExtraParameters()}
+     * @param outputFilePath       path to output file
      */
     @DataBoundConstructor
     public StartInstanceBuilder(String manifestRelativePath, String timeout, String environmentId, String applicationId, String extraParameters, String outputFilePath) {
@@ -103,10 +110,10 @@ public class StartInstanceBuilder extends QubellBuilder {
     /**
      * Copies manifest from build workflow (either on master or slave), into temporary folder on master
      *
-     * @param build current build
+     * @param build    current build
      * @param buildLog current build log
      * @return {@link FilePath} object for new temporary maifest file
-     * @throws IOException when file could not be copied/accessed
+     * @throws IOException          when file could not be copied/accessed
      * @throws InterruptedException when operation is interrupted
      */
     protected FilePath copyManifest(AbstractBuild build, PrintStream buildLog) throws IOException, InterruptedException {
@@ -136,13 +143,14 @@ public class StartInstanceBuilder extends QubellBuilder {
     /**
      * Performs a build with following steps
      * <ol>
-     *     <li>Copies manifest into temp folder</li>
-     *     <li>Updates manifest for qubell application</li>
-     *     <li>Launches application instance</li>
-     *     <li>Waits when instance turned into Running state</li>
-     *     <li>Saves instance id for {@link RunCommandBuilder} or {@link DestroyInstanceBuilder}</li>
+     * <li>Copies manifest into temp folder</li>
+     * <li>Updates manifest for qubell application</li>
+     * <li>Launches application instance</li>
+     * <li>Waits when instance turned into Running state</li>
+     * <li>Saves instance id for {@link RunCommandBuilder} or {@link DestroyInstanceBuilder}</li>
      * </ol>
-     * @param build current build
+     *
+     * @param build    current build
      * @param launcher build launcher
      * @param listener listener
      * @return true of builder did not fail, otherwise false
@@ -157,51 +165,49 @@ public class StartInstanceBuilder extends QubellBuilder {
 
         PrintStream buildLog = listener.getLogger();
 
-        if(!validateConfiguration()){
+        if (!validateConfiguration()) {
             logMessage(buildLog, "Unable to proceed without configuration. Please check global settings page.");
 
             build.setResult(Result.FAILURE);
             return false;
         }
 
-        try {
-            manifestFile = copyManifest(build, buildLog);
-
-
-            manifest = new Manifest(manifestFile.readToString());
-
-            logMessage(buildLog, "Deleting temporary manifestFile");
-            manifestFile.delete();
-        } catch (FileNotFoundException fnfe) {
-            logMessage(buildLog, "Unable to proceed without manifest");
-            build.setResult(Result.FAILURE);
-            return false;
-        }
-        catch (IOException ioe){
-            logMessage(buildLog, "Unable to read manifest file");
-            build.setResult(Result.FAILURE);
-            return false;
-        }
-
-        logMessage(buildLog, "Updating app manifest");
-
         Application application = new Application(applicationId);
+        Integer updatedVersion = 0;
 
-        Integer updatedVersion;
+        if (!StringUtils.isBlank(manifestRelativePath)) {
+            try {
+                manifestFile = copyManifest(build, buildLog);
+                manifest = new Manifest(manifestFile.readToString());
 
-        try {
-            updatedVersion = getServiceFacade().updateManifest(application, manifest);
-            logMessage(buildLog, "Manifest updated. New version is %s", updatedVersion.toString());
-        } catch (InvalidCredentialsException e) {
-            logMessage(buildLog, "Error when updating manifest: invalid credentials.");
-            build.setResult(Result.FAILURE);
-            return false;
+                logMessage(buildLog, "Deleting temporary manifestFile");
+                manifestFile.delete();
+            } catch (FileNotFoundException fnfe) {
+                logMessage(buildLog, "Unable to proceed without manifest");
+                build.setResult(Result.FAILURE);
+                return false;
+            } catch (IOException ioe) {
+                logMessage(buildLog, "Unable to read manifest file");
+                build.setResult(Result.FAILURE);
+                return false;
+            }
 
-        } catch (InvalidInputException e) {
-            logMessage(buildLog, "Invalid manifest file");
-            build.setResult(Result.FAILURE);
-            return false;
+            logMessage(buildLog, "Updating app manifest");
 
+            try {
+                updatedVersion = getServiceFacade().updateManifest(application, manifest);
+                logMessage(buildLog, "Manifest updated. New version is %s", updatedVersion.toString());
+            } catch (InvalidCredentialsException e) {
+                logMessage(buildLog, "Error when updating manifest: invalid credentials.");
+                build.setResult(Result.FAILURE);
+                return false;
+
+            } catch (InvalidInputException e) {
+                logMessage(buildLog, "Invalid manifest file");
+                build.setResult(Result.FAILURE);
+                return false;
+
+            }
         }
 
         Instance instance;
@@ -222,7 +228,6 @@ public class StartInstanceBuilder extends QubellBuilder {
     }
 
 
-
     /**
      * Descriptor for {@link StartInstanceBuilder}. Used as a singleton.
      * The class is marked as public so that it can be accessed from views.
@@ -231,22 +236,7 @@ public class StartInstanceBuilder extends QubellBuilder {
      */
     @Extension // This indicates to Jenkins that this is an implementation of an extension point.
     public static final class StartInstanceDescriptor extends BaseDescriptor {
-
         /**
-         * Performs on-the-fly validation of the form field manifest path
-         * Field is required
-         *
-         * @param value This parameter receives the value that the user has typed.
-         * @return Indicates the outcome of the validation. This is sent to the browser.
-         */
-        public FormValidation doCheckManifestRelativePath(@QueryParameter String value)
-                throws IOException, ServletException {
-            if (value.length() == 0)
-                return FormValidation.error("Please specify a relative path to manifest");
-            return FormValidation.ok();
-        }
-        /**
-
          * Performs on-the-fly validation of the form field application id
          *
          * @param value This parameter receives the value that the user has typed.
@@ -261,6 +251,7 @@ public class StartInstanceBuilder extends QubellBuilder {
 
         /**
          * Gets application list json for typeahead functionality
+         *
          * @return json object for apps list
          * @throws InvalidCredentialsException when credentials invalid
          */
@@ -270,6 +261,7 @@ public class StartInstanceBuilder extends QubellBuilder {
 
         /**
          * Gets environments list json for typeahead functionality
+         *
          * @return json object for envs list
          * @throws InvalidCredentialsException when credentials invalid
          */

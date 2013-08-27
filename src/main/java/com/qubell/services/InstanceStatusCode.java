@@ -46,6 +46,10 @@ public enum InstanceStatusCode {
      */
     SUSPENDED,
     /**
+     * Instance is being destroyed
+     */
+    DESTROYING,
+    /**
      * Instance destroyed
      */
     DESTROYED

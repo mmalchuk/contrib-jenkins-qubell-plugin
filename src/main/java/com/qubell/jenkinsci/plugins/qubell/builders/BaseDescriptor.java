@@ -57,20 +57,6 @@ public abstract class BaseDescriptor extends BuildStepDescriptor<Builder> {
     }
 
     /**
-     * Validates builder output path
-     * @param value path value to be testified
-     * @return jenkins validation container, see {@link FormValidation}
-     * @throws IOException
-     * @throws ServletException
-     */
-    public FormValidation doCheckOutputFilePath(@QueryParameter String value) throws IOException, ServletException {
-        if (StringUtils.isBlank(value)) {
-            return FormValidation.error("Output path can't be an empty string");
-        }
-        return FormValidation.ok();
-    }
-
-    /**
      * Validates extra parameters value: valid JSON map expression
      *
      * @param value string value of JSON object passed from form

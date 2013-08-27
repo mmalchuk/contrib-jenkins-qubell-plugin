@@ -302,6 +302,7 @@ public abstract class QubellBuilder extends Builder {
      */
     protected void saveReturnValues(AbstractBuild build, PrintStream buildLog, Instance instance) throws InvalidCredentialsException, IOException {
         if(StringUtils.isEmpty(outputFilePath)){
+            logMessage(buildLog, "Output file is not specified, ignoring variables save");
             return;
         }
 
