@@ -1,13 +1,13 @@
 package com.qubell.jenkinsci.plugins.qubell.builders;
 
 import com.qubell.jenkinsci.plugins.qubell.JsonParser;
-import com.qubell.services.BaseServiceIT;
+import com.qubell.services.BaseServiceTest;
 import com.qubell.services.QubellFacade;
 import com.qubell.services.QubellFacadeImpl;
 import org.junit.Assert;
 import org.junit.Test;
 
-public class TypeAheadTest extends BaseServiceIT {
+public class TypeAheadTest extends BaseServiceTest {
 
     @Test
     public void TestSerializeApps() throws Exception {

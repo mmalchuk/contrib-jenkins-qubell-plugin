@@ -8,9 +8,9 @@ import java.util.List;
 import static junit.framework.Assert.assertNotNull;
 import static junit.framework.Assert.assertNotSame;
 
-public class OrganizationServiceImplIT  extends BaseServiceIT {
+public class OrganizationServiceImplTest extends BaseServiceTest {
 
-    private final String orgId = "520006e0e4b0b2a404bf0289";
+    private final String orgId = "51e2575ae4b031cbc827cbf1";
 
     @Test
     public void testGetOrganizations() throws Exception {
@@ -38,7 +38,6 @@ public class OrganizationServiceImplIT  extends BaseServiceIT {
         assertNotSame(0, apps.size());
         assertNotNull(apps.get(0).getId());
         assertNotNull(apps.get(0).getName());
-        assertNotNull(apps.get(0).getOrganizationId());
     }
 
     @Test

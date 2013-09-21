@@ -19,9 +19,9 @@ import static junit.framework.Assert.assertNotNull;
  * @author Alex Krupnov
  * @created 16.07.13 12:22
  */
-public class ApplicationServiceImplIT extends BaseServiceIT {
+public class ApplicationServiceImplTest extends BaseServiceTest {
 
-    private final String applicationId = "51fcdbb5e4b06130966ff10f";
+    private final String applicationId = "51e682d6e4b031cbc827cdb3";
     private String superSimpleManifest = "launch:\n" +
             "  steps:\n" +
             "        - destroy:\n" +

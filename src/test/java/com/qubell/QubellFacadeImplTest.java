@@ -1,10 +1,6 @@
 package com.qubell;
 
 import com.qubell.services.*;
-import org.apache.log4j.ConsoleAppender;
-import org.apache.log4j.Level;
-import org.apache.log4j.LogManager;
-import org.apache.log4j.PatternLayout;
 import org.junit.Test;
 
 import java.util.HashMap;
@@ -18,7 +14,7 @@ import static junit.framework.Assert.assertNotSame;
  * @author Alex Krupnov
  * @created 17.07.13 15:15
  */
-public class QubellFacadeImplIT extends BaseServiceIT {
+public class QubellFacadeImplTest extends BaseServiceTest {
     private String appManifest = "launch:\n" +
             "  steps:\n" +
             "        - destroy:\n" +
@@ -48,7 +44,7 @@ public class QubellFacadeImplIT extends BaseServiceIT {
             "  steps:\n" +
             "        - destroy:\n" +
             "            action: compute.shrink-all";
-    private String applicationId = "52000761e4b0b2a404bf029f";
+    private String applicationId = "51e682d6e4b031cbc827cdb3";
 
     @Test
     public void testGetAllApps() throws Exception{
@@ -107,6 +103,6 @@ public class QubellFacadeImplIT extends BaseServiceIT {
 
         status = facade.getStatus(instance);
 
-        facade.runCommand(instance, "destroy");
+        //facade.runCommand(instance, "destroy");
     }
 }

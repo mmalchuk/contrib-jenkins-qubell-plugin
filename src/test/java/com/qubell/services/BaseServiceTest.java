@@ -10,7 +10,7 @@ import org.apache.log4j.PatternLayout;
  * @author Alex Krupnov
  * @created 17.07.13 11:29
  */
-public class BaseServiceIT {
+public class BaseServiceTest {
     protected Configuration getTestConfiguration(){
         boolean enableMessageLogging = true;
         if(enableMessageLogging){
@@ -19,6 +19,6 @@ public class BaseServiceIT {
             LogManager.getRootLogger().addAppender(new ConsoleAppender(new PatternLayout(PatternLayout.TTCC_CONVERSION_PATTERN)));
 
         }
-        return new Configuration("https://secure.dev.qubell.com/","a.krupnov@gmail.com","123123123", true, enableMessageLogging);
+        return new Configuration("https://express.qubell.com/","a.krupnov@gmail.com","123123123", true, enableMessageLogging);
     }
 }

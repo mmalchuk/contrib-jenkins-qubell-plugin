@@ -15,7 +15,10 @@ import static junit.framework.Assert.*;
  * @author Alex Krupnov
  * @created 17.07.13 11:29
  */
-public class InstanceServiceWsImplIT extends BaseServiceIT {
+public class InstanceServiceWsImplTest extends BaseServiceTest {
+
+    private final String applicationId = "51e44bb6e4b031cbc827cc98";
+
     @Test
     public void testRunCommand() throws Exception
     {
@@ -25,7 +28,7 @@ public class InstanceServiceWsImplIT extends BaseServiceIT {
         Map<String,Object> parameters = new HashMap<String, Object>();
         parameters.put("anotherCustomParam", "value");
 
-        LaunchInstanceResponse result = applicationService.launch("51e44bb6e4b031cbc827cc98", "My Instance", null, null, 300000, null);
+        LaunchInstanceResponse result = applicationService.launch(applicationId, "My Instance", null, null, 300000, null);
         assertNotNull("Unable to run command when instance is null", result);
         assertFalse("Unable to run command when instance is null", StringUtils.isBlank(result.getId()));
 
@@ -79,7 +82,7 @@ public class InstanceServiceWsImplIT extends BaseServiceIT {
         Map<String,Object> parameters = new HashMap<String, Object>();
         parameters.put("anotherCustomParam", "value");
 
-        LaunchInstanceResponse result = applicationService.launch("51e44bb6e4b031cbc827cc98", "My Instance", null, null, 300000, null);
+        LaunchInstanceResponse result = applicationService.launch(applicationId, "My Instance", null, null, 300000, null);
         assertNotNull("Unable to run command when instance is null", result);
         assertFalse("Unable to run command when instance is null", StringUtils.isBlank(result.getId()));
 
