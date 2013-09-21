@@ -26,7 +26,6 @@ import org.codehaus.jackson.annotate.JsonIgnoreProperties;
 public class Application {
     private String id;
     private String name;
-    private String organizationId;
 
     /**
      * Application id
@@ -58,21 +57,5 @@ public class Application {
      */
     public void setName(String name) {
         this.name = name;
-    }
-
-    /**
-     * Id of organization which app belongs to
-     * @return id of org
-     */
-    public String getOrganizationId() {
-        return organizationId;
-    }
-
-    /**
-     * Sets organization id
-     * @param organizationId value to be set
-     */
-    public void setOrganizationId(String organizationId) {
-        this.organizationId = organizationId;
     }
 }
