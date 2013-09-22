@@ -41,6 +41,12 @@ import java.util.Map;
  * @author Alex Krupnov
  */
 public abstract class QubellBuilder extends Builder {
+
+    /**
+     * Defines which status has to be set when failure occurs
+     **/
+    private final Result failureReaction;
+
     /**
      * Prefix for log messages
      */
@@ -71,11 +77,13 @@ public abstract class QubellBuilder extends Builder {
      * @param timeout        string (injected from UI value of timeout)
      * @param expectedStatus the {@link com.qubell.services.InstanceStatusCode}, expected by builder for successful finish
      * @param outputFilePath path to builder output file
+     * @param failureReaction a target build status which should be set when instnace returns failure status
      */
-    public QubellBuilder(String timeout, InstanceStatusCode expectedStatus, String outputFilePath) {
+    public QubellBuilder(String timeout, InstanceStatusCode expectedStatus, String outputFilePath, String failureReaction) {
         this.expectedStatus = expectedStatus;
         this.timeout = Integer.parseInt(timeout);
         this.outputFilePath = outputFilePath;
+        this.failureReaction = Result.fromString(failureReaction != null ? failureReaction : Result.FAILURE.toString());
     }
 
     /**
@@ -255,6 +263,18 @@ public abstract class QubellBuilder extends Builder {
     }
 
     /**
+     * Target build status which should be set when instnace returns failure status
+     * @return
+     */
+    public String getFailureReaction(){
+        return failureReaction.toString();
+    }
+
+    public String isSelectedFailureReason(String candidate){
+        return candidate.equals(getFailureReaction()) ? "selected" : "";
+    }
+
+    /**
      * Waits for instance to be in expected status and decides whether build was successful
      * see {@link #expectedStatus}
      * build is marked is failed when status is not reached
@@ -267,9 +287,11 @@ public abstract class QubellBuilder extends Builder {
     protected boolean waitForExpectedStatus(AbstractBuild build, PrintStream buildLog, Instance instance) {
         try {
             if (!waitForInstanceStatus(buildLog, instance)) {
-                logMessage(buildLog, "Instance status wait failed");
-                build.setResult(Result.FAILURE);
-                return false;
+                logMessage(buildLog, "Instance did not return expected status (%s) within given timeout of %s seconds", expectedStatus, timeout);
+
+                build.setResult(failureReaction);
+
+                return failureReaction != Result.FAILURE;
             } else {
                 //Since return values not always getting populated instantly, adding an explicit wait here
                 Thread.sleep(2000);

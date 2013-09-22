@@ -53,15 +53,16 @@ public class RunCommandBuilder extends QubellBuilder {
      * @param timeout execution timeout {@link #getTimeout()}
      * @param instanceOptions pre-defined instance options see {@link #getInstanceId()}
      * @param outputFilePath path to output file
+     * @param failureReaction a target build status which should be set when instnace returns failure status
      */
     @DataBoundConstructor
-    public RunCommandBuilder(String name, String extraParameters, String timeout, InstanceOptions instanceOptions, String outputFilePath) {
-        this(name, extraParameters, timeout, instanceOptions, outputFilePath, InstanceStatusCode.RUNNING);
+    public RunCommandBuilder(String name, String extraParameters, String timeout, InstanceOptions instanceOptions, String outputFilePath, String failureReaction) {
+        this(name, extraParameters, timeout, instanceOptions, outputFilePath, InstanceStatusCode.RUNNING, failureReaction);
     }
 
 
-    protected RunCommandBuilder(String name, String extraParameters, String timeout, InstanceOptions instanceOptions, String outputFilePath, InstanceStatusCode expectedStatus) {
-        super(timeout, expectedStatus, outputFilePath);
+    protected RunCommandBuilder(String name, String extraParameters, String timeout, InstanceOptions instanceOptions, String outputFilePath, InstanceStatusCode expectedStatus, String failureReaction) {
+        super(timeout, expectedStatus, outputFilePath, failureReaction);
         this.commandName = name;
         this.extraParameters = extraParameters;
         this.instanceOptions = instanceOptions;

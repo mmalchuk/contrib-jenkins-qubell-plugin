@@ -97,10 +97,11 @@ public class StartInstanceBuilder extends QubellBuilder {
      * @param applicationId        see {@link #getApplicationId()}
      * @param extraParameters      see {@link #getExtraParameters()}
      * @param outputFilePath       path to output file
+     * @param failureReaction a target build status which should be set when instnace returns failure status
      */
     @DataBoundConstructor
-    public StartInstanceBuilder(String manifestRelativePath, String timeout, String environmentId, String applicationId, String extraParameters, String outputFilePath) {
-        super(timeout, InstanceStatusCode.RUNNING, outputFilePath);
+    public StartInstanceBuilder(String manifestRelativePath, String timeout, String environmentId, String applicationId, String extraParameters, String outputFilePath, String failureReaction) {
+        super(timeout, InstanceStatusCode.RUNNING, outputFilePath, failureReaction);
         this.manifestRelativePath = manifestRelativePath;
         this.environmentId = environmentId;
         this.applicationId = applicationId;
