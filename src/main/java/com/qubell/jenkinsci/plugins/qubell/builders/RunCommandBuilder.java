@@ -52,32 +52,39 @@ public class RunCommandBuilder extends QubellBuilder {
     private String instanceIdResolved;
 
     private InstanceOptions instanceOptions;
+    private AsyncExecutionOptions asyncExecutionOptions;
+    private String jobId;
 
     /**
      * A data bound constructor, executed by Jenkins
      *
-     * @param name            command name
-     * @param extraParameters extended parameters {@link #getExtraParameters()}
-     * @param timeout         execution timeout {@link #getTimeout()}
-     * @param instanceOptions pre-defined instance options see {@link #getInstanceId()}
-     * @param outputFilePath  path to output file
-     * @param failureReaction a target build status which should be set when instnace returns failure status
+     * @param name                  command name
+     * @param extraParameters       extended parameters {@link #getExtraParameters()}
+     * @param timeout               execution timeout {@link #getTimeout()}
+     * @param instanceOptions       pre-defined instance options see {@link #getInstanceId()}
+     * @param outputFilePath        path to output file
+     * @param failureReaction       a target build status which should be set when instance returns failure status
+     * @param asyncExecutionOptions optional settings for asynchronous job execution
      */
     @DataBoundConstructor
-    public RunCommandBuilder(String name, String extraParameters, String timeout, InstanceOptions instanceOptions, String outputFilePath, String failureReaction) {
-        this(name, extraParameters, timeout, instanceOptions, outputFilePath, InstanceStatusCode.RUNNING, failureReaction);
+    public RunCommandBuilder(String name, String extraParameters, String timeout, InstanceOptions instanceOptions, String outputFilePath, String failureReaction, AsyncExecutionOptions asyncExecutionOptions) {
+        this(name, extraParameters, timeout, instanceOptions, outputFilePath, InstanceStatusCode.RUNNING, failureReaction, asyncExecutionOptions);
     }
 
 
-    protected RunCommandBuilder(String name, String extraParameters, String timeout, InstanceOptions instanceOptions, String outputFilePath, InstanceStatusCode expectedStatus, String failureReaction) {
+    protected RunCommandBuilder(String name, String extraParameters, String timeout, InstanceOptions instanceOptions, String outputFilePath, InstanceStatusCode expectedStatus, String failureReaction, AsyncExecutionOptions asyncExecutionOptions) {
         super(timeout, expectedStatus, outputFilePath, failureReaction);
         this.commandName = name;
         this.extraParameters = extraParameters;
         this.instanceOptions = instanceOptions;
+        this.asyncExecutionOptions = asyncExecutionOptions;
+
         if (instanceOptions != null) {
             this.instanceId = instanceOptions.getInstanceId();
         }
-
+        if (asyncExecutionOptions != null) {
+            this.jobId = asyncExecutionOptions.getJobId();
+        }
     }
 
     /**
@@ -99,10 +106,28 @@ public class RunCommandBuilder extends QubellBuilder {
     /**
      * A custom, pre defined instance information, if supplied, saved value is ignored
      *
-     * @return instance id or null
+     * @return instance options or null
      */
     public InstanceOptions getInstanceOptions() {
         return instanceOptions;
+    }
+
+    /**
+     * Identifier for the job, spawned by {@link RunCommandBuilder}, used to pick the job result later
+     *
+     * @return identifier of the job
+     */
+    public String getJobId() {
+        return jobId;
+    }
+
+    /**
+     * Optional settings for async job execution
+     *
+     * @return async settings or null
+     */
+    public AsyncExecutionOptions getAsyncExecutionOptions() {
+        return asyncExecutionOptions;
     }
 
     /**

@@ -24,6 +24,12 @@ limitations under the License.
         </f:entry>
     </f:optionalBlock>
 
+    <f:optionalBlock name="asyncExecutionOptions" title="Execute asynchronously" checked="${instance.jobId != null}">
+        <f:entry title="Identifier for this job" field="jobId" value="${instance.jobId}">
+            <f:textbox />
+        </f:entry>
+    </f:optionalBlock>
+
     <f:entry title="Name" field="name">
         <f:textbox/>
     </f:entry>

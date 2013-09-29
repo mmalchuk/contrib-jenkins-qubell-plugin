@@ -35,7 +35,7 @@ public class DestroyInstanceBuilder extends RunCommandBuilder {
      */
     @DataBoundConstructor
     public DestroyInstanceBuilder(String timeout, InstanceOptions instanceOptions, String failureReaction) {
-        super("destroy", "{}", timeout, instanceOptions, null, InstanceStatusCode.DESTROYED, failureReaction);
+        super("destroy", "{}", timeout, instanceOptions, null, InstanceStatusCode.DESTROYED, failureReaction, null);
     }
 
     /**
