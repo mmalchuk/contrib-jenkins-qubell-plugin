@@ -34,6 +34,8 @@ import org.kohsuke.stapler.QueryParameter;
 import javax.servlet.ServletException;
 import java.io.IOException;
 import java.io.PrintStream;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Runs a command on Qubell instance, initialized by {@link StartInstanceBuilder}
@@ -203,7 +205,6 @@ public class RunCommandBuilder extends QubellBuilder {
         logMessage(buildLog, "Running command %s on instance %s.", commandNameResolved, instance.getId());
 
         try {
-
             getServiceFacade().runCommand(instance, commandNameResolved, JsonParser.parseMap(extraParametersResolved));
         } catch (InvalidCredentialsException e) {
             logMessage(buildLog, "Error when running command: invalid credentials");
@@ -213,6 +214,17 @@ public class RunCommandBuilder extends QubellBuilder {
             logMessage(buildLog, "Error when running command: command is not supported by manifest");
             build.setResult(Result.FAILURE);
             return false;
+        }
+
+        if (asyncExecutionOptions != null && StringUtils.isNotBlank(asyncExecutionOptions.getJobId())) {
+            logMessage(buildLog, "Job configured to be ran asynchronously, saving instance id and expected status for job id %s", asyncExecutionOptions.getJobId());
+            Map<String, Object> asyncData = new HashMap<String, Object>();
+            asyncData.put("instanceId", instanceId);
+            asyncData.put("expectedStatus", expectedStatus);
+
+            saveFileToWorkspace(build, buildLog, JsonParser.serialize(asyncData), asyncExecutionOptions.getJobId());
+
+            return true;
         }
 
         return waitForExpectedStatus(build, buildLog, instance);

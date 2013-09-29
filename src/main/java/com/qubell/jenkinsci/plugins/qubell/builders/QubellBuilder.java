@@ -347,29 +347,42 @@ public abstract class QubellBuilder extends Builder {
             logMessage(buildLog, "Saving %d return values", returnValues.size());
             resultMap.put("returnValues", returnValues);
         }
-        Computer currentMachine = Computer.currentComputer();
 
         String outputContents = JsonParser.serialize(resultMap);
 
-        FilePath workspaceOutput = build.getWorkspace().child(outputFilePathResolved);
+        saveFileToWorkspace(build, buildLog, outputContents, outputFilePathResolved);
+    }
+
+    /**
+     * Saves a text file to master and slave (if available) workspaces
+     *
+     * @param build    current build
+     * @param buildLog current build log
+     * @param contents contents of file to save
+     * @param filePath relative file path
+     * @throws IOException when file can't be saved or folders created
+     */
+    protected void saveFileToWorkspace(AbstractBuild build, PrintStream buildLog, String contents, String filePath) throws IOException {
+        Computer currentMachine = Computer.currentComputer();
+
+        FilePath workspaceOutput = build.getWorkspace().child(filePath);
         try {
 
             workspaceOutput.getParent().mkdirs();
-            workspaceOutput.write(outputContents, null);
+            workspaceOutput.write(contents, null);
             if (currentMachine instanceof SlaveComputer) {
-                FilePath masterWorkspaceOutput = getMasterWorkspaceRoot(build, buildLog).child(outputFilePathResolved);
+                FilePath masterWorkspaceOutput = getMasterWorkspaceRoot(build, buildLog).child(filePath);
 
                 masterWorkspaceOutput.getParent().mkdirs();
-                masterWorkspaceOutput.write(outputContents, null);
+                masterWorkspaceOutput.write(contents, null);
             }
 
         } catch (IOException e) {
-            logMessage(buildLog, "unable to save log message %s", e);
+            logMessage(buildLog, "Unable to save file to workspace %s", e);
             throw e;
         } catch (InterruptedException e) {
             throw new IOException(e);
         }
-
     }
 
     /**
