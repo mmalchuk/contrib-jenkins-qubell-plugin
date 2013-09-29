@@ -1,17 +1,17 @@
 /*
  * Copyright 2013 Qubell, Inc.
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
  */
 
 package com.qubell.jenkinsci.plugins.qubell.builders;
@@ -219,8 +219,9 @@ public class RunCommandBuilder extends QubellBuilder {
         if (asyncExecutionOptions != null && StringUtils.isNotBlank(asyncExecutionOptions.getJobId())) {
             logMessage(buildLog, "Job configured to be ran asynchronously, saving instance id and expected status for job id %s", asyncExecutionOptions.getJobId());
             Map<String, Object> asyncData = new HashMap<String, Object>();
-            asyncData.put("instanceId", instanceId);
-            asyncData.put("expectedStatus", expectedStatus);
+            asyncData.put(ASYNC_INSTANCE_ID_KEY, instanceId);
+            asyncData.put(ASYNC_EXPECTED_STATUS_KEY, expectedStatus);
+            asyncData.put(ASYNC_OUTPUT_PATH_KEY, getOutputFilePath());
 
             saveFileToWorkspace(build, buildLog, JsonParser.serialize(asyncData), asyncExecutionOptions.getJobId());
 
@@ -258,5 +259,4 @@ public class RunCommandBuilder extends QubellBuilder {
             return "Qubell: Run Command";
         }
     }
-
 }
