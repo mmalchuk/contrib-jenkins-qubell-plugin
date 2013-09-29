@@ -48,9 +48,16 @@ public class StartInstanceBuilder extends QubellBuilder {
     private static String MANIFEST_TEMP_NAME = "project_manifest.yaml";
 
     private final String manifestRelativePath;
+    private String manifestRelativePathResolved;
+
     private final String environmentId;
+    private String environmentIdResolved;
+
     private final String applicationId;
+    private String applicationIdResolved;
+
     private final String extraParameters;
+    private String extraParametersResolved;
 
     /**
      * Manifest file path, relative to project workspace
@@ -97,7 +104,7 @@ public class StartInstanceBuilder extends QubellBuilder {
      * @param applicationId        see {@link #getApplicationId()}
      * @param extraParameters      see {@link #getExtraParameters()}
      * @param outputFilePath       path to output file
-     * @param failureReaction a target build status which should be set when instnace returns failure status
+     * @param failureReaction      a target build status which should be set when instnace returns failure status
      */
     @DataBoundConstructor
     public StartInstanceBuilder(String manifestRelativePath, String timeout, String environmentId, String applicationId, String extraParameters, String outputFilePath, String failureReaction) {
@@ -118,13 +125,13 @@ public class StartInstanceBuilder extends QubellBuilder {
      * @throws InterruptedException when operation is interrupted
      */
     protected FilePath copyManifest(AbstractBuild build, PrintStream buildLog) throws IOException, InterruptedException {
-        logMessage(buildLog, "copying manifest from current build workspace. Relative path is %s", manifestRelativePath);
+        logMessage(buildLog, "copying manifest from current build workspace. Relative path is %s", manifestRelativePathResolved);
 
         FilePath destinationManifest = getTemporaryManifestPath(build, buildLog);
-        FilePath sourceManifest = build.getWorkspace().child(manifestRelativePath);
+        FilePath sourceManifest = build.getWorkspace().child(manifestRelativePathResolved);
 
         if (!sourceManifest.exists()) {
-            logMessage(buildLog, "Unable to find manifest file with relative path %s, target file %s does not exist\n", manifestRelativePath, sourceManifest.toURI());
+            logMessage(buildLog, "Unable to find manifest file with relative path %s, target file %s does not exist\n", manifestRelativePathResolved, sourceManifest.toURI());
             throw new FileNotFoundException("Manifest not found");
         }
 
@@ -160,6 +167,8 @@ public class StartInstanceBuilder extends QubellBuilder {
      */
     @Override
     public boolean perform(AbstractBuild build, Launcher launcher, BuildListener listener) throws IOException, InterruptedException {
+        resolveParameterPlaceholders(build, listener);
+
         FilePath manifestFile;
 
         Manifest manifest;
@@ -173,10 +182,10 @@ public class StartInstanceBuilder extends QubellBuilder {
             return false;
         }
 
-        Application application = new Application(applicationId);
+        Application application = new Application(applicationIdResolved);
         Integer updatedVersion = 0;
 
-        if (!StringUtils.isBlank(manifestRelativePath)) {
+        if (!StringUtils.isBlank(manifestRelativePathResolved)) {
             try {
                 manifestFile = copyManifest(build, buildLog);
                 manifest = new Manifest(manifestFile.readToString());
@@ -214,7 +223,7 @@ public class StartInstanceBuilder extends QubellBuilder {
         Instance instance;
         try {
             instance = getServiceFacade().launchInstance(new InstanceSpecification(application, updatedVersion),
-                    new LaunchSettings(new Environment(environmentId), JsonParser.parseMap(extraParameters)));
+                    new LaunchSettings(new Environment(environmentIdResolved), JsonParser.parseMap(extraParametersResolved)));
 
             logMessage(buildLog, "Launched instance %s", instance.getId());
             saveBuildVariable(build, INSTANCE_ID_KEY, instance.getId(), buildLog);
@@ -228,6 +237,15 @@ public class StartInstanceBuilder extends QubellBuilder {
         return waitForExpectedStatus(build, buildLog, instance);
     }
 
+    @Override
+    protected void resolveParameterPlaceholders(AbstractBuild build, BuildListener listener) throws IOException, InterruptedException {
+        super.resolveParameterPlaceholders(build, listener);
+
+        this.manifestRelativePathResolved = resolveVariableMacros(build, listener, this.manifestRelativePath);
+        this.environmentIdResolved = resolveVariableMacros(build, listener, this.environmentId);
+        this.applicationIdResolved = resolveVariableMacros(build, listener, this.applicationId);
+        this.extraParametersResolved = resolveVariableMacros(build, listener, this.extraParameters);
+    }
 
     /**
      * Descriptor for {@link StartInstanceBuilder}. Used as a singleton.

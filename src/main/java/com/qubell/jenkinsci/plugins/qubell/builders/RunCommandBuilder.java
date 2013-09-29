@@ -38,21 +38,29 @@ import java.io.PrintStream;
 /**
  * Runs a command on Qubell instance, initialized by {@link StartInstanceBuilder}
  * Waits for instance to reach the Running state and attempts to save return values (if any)
+ *
  * @author Alex Krupnov
  */
 public class RunCommandBuilder extends QubellBuilder {
     private final String commandName;
+    private String commandNameResolved;
+
     private final String extraParameters;
+    private String extraParametersResolved;
+
     private String instanceId;
+    private String instanceIdResolved;
+
     private InstanceOptions instanceOptions;
 
     /**
      * A data bound constructor, executed by Jenkins
-     * @param name command name
+     *
+     * @param name            command name
      * @param extraParameters extended parameters {@link #getExtraParameters()}
-     * @param timeout execution timeout {@link #getTimeout()}
+     * @param timeout         execution timeout {@link #getTimeout()}
      * @param instanceOptions pre-defined instance options see {@link #getInstanceId()}
-     * @param outputFilePath path to output file
+     * @param outputFilePath  path to output file
      * @param failureReaction a target build status which should be set when instnace returns failure status
      */
     @DataBoundConstructor
@@ -66,7 +74,7 @@ public class RunCommandBuilder extends QubellBuilder {
         this.commandName = name;
         this.extraParameters = extraParameters;
         this.instanceOptions = instanceOptions;
-        if(instanceOptions != null){
+        if (instanceOptions != null) {
             this.instanceId = instanceOptions.getInstanceId();
         }
 
@@ -81,6 +89,7 @@ public class RunCommandBuilder extends QubellBuilder {
 
     /**
      * Id of pre-defined instance
+     *
      * @return value or null
      */
     public String getInstanceId() {
@@ -89,6 +98,7 @@ public class RunCommandBuilder extends QubellBuilder {
 
     /**
      * A custom, pre defined instance information, if supplied, saved value is ignored
+     *
      * @return instance id or null
      */
     public InstanceOptions getInstanceOptions() {
@@ -97,19 +107,28 @@ public class RunCommandBuilder extends QubellBuilder {
 
     /**
      * Gets instance id from build pre-defined value or, if not pre-defined, from persistent container
-     * @param build current build
+     *
+     * @param build    current build
      * @param buildLog build log
      * @return value of instance id
      */
     protected String retrieveInstanceId(AbstractBuild build, PrintStream buildLog) {
 
-        String instanceId = !StringUtils.isBlank(getInstanceId()) ? getInstanceId() : readBuildVariable(build, INSTANCE_ID_KEY, buildLog);
+        String instanceId = !StringUtils.isBlank(instanceIdResolved) ? instanceIdResolved : readBuildVariable(build, INSTANCE_ID_KEY, buildLog);
 
         logMessage(buildLog, "retrieved instance id %s", instanceId);
 
         return instanceId;
     }
 
+    @Override
+    protected void resolveParameterPlaceholders(AbstractBuild build, BuildListener listener) throws IOException, InterruptedException {
+        super.resolveParameterPlaceholders(build, listener);
+
+        this.instanceIdResolved = resolveVariableMacros(build, listener, this.instanceId);
+        this.commandNameResolved = resolveVariableMacros(build, listener, this.commandName);
+        this.extraParametersResolved = resolveVariableMacros(build, listener, this.extraParameters);
+    }
 
 
     /**
@@ -122,22 +141,24 @@ public class RunCommandBuilder extends QubellBuilder {
     /**
      * Performs a build with following steps
      * <ol>
-     *     <li>Attempts to get instance id, saved previously</li>
-     *     <li>Launches runs given command on instance</li>
-     *     <li>Waits for instance to turn into {@link #expectedStatus} state/li>
-     *     <li>Saves the return values of instance if any</li>
+     * <li>Attempts to get instance id, saved previously</li>
+     * <li>Launches runs given command on instance</li>
+     * <li>Waits for instance to turn into {@link #expectedStatus} state/li>
+     * <li>Saves the return values of instance if any</li>
      * </ol>
      * If any of steps above failed, fails the job
-     * @param build current build
+     *
+     * @param build    current build
      * @param launcher build launcher
      * @param listener build listener
      * @return true of builder finished successfully, otherwise false
      */
     @Override
-    public boolean perform(AbstractBuild build, Launcher launcher, BuildListener listener) {
+    public boolean perform(AbstractBuild build, Launcher launcher, BuildListener listener) throws IOException, InterruptedException {
+        resolveParameterPlaceholders(build, listener);
 
         PrintStream buildLog = listener.getLogger();
-        if(!validateConfiguration()){
+        if (!validateConfiguration()) {
             logMessage(buildLog, "Unable to proceed without configuration. Please check global settings page.");
 
             build.setResult(Result.FAILURE);
@@ -154,11 +175,11 @@ public class RunCommandBuilder extends QubellBuilder {
         }
         Instance instance = new Instance(instanceId);
 
-        logMessage(buildLog, "Running command %s on instance %s.", commandName, instance.getId());
+        logMessage(buildLog, "Running command %s on instance %s.", commandNameResolved, instance.getId());
 
         try {
 
-            getServiceFacade().runCommand(instance, commandName, JsonParser.parseMap(extraParameters));
+            getServiceFacade().runCommand(instance, commandNameResolved, JsonParser.parseMap(extraParametersResolved));
         } catch (InvalidCredentialsException e) {
             logMessage(buildLog, "Error when running command: invalid credentials");
             build.setResult(Result.FAILURE);

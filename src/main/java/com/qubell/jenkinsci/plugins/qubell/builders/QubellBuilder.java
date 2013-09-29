@@ -21,10 +21,13 @@ import com.qubell.jenkinsci.plugins.qubell.JsonParser;
 import com.qubell.jenkinsci.plugins.qubell.VariablesAction;
 import com.qubell.services.*;
 import com.qubell.services.exceptions.InvalidCredentialsException;
+import hudson.EnvVars;
 import hudson.FilePath;
+import hudson.Util;
 import hudson.model.*;
 import hudson.slaves.SlaveComputer;
 import hudson.tasks.Builder;
+import hudson.util.VariableResolver;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.time.StopWatch;
 
@@ -44,7 +47,7 @@ public abstract class QubellBuilder extends Builder {
 
     /**
      * Defines which status has to be set when failure occurs
-     **/
+     */
     private final Result failureReaction;
 
     /**
@@ -71,12 +74,14 @@ public abstract class QubellBuilder extends Builder {
      */
     private final String outputFilePath;
 
+    private String outputFilePathResolved;
+
     /**
      * Inits builder common properties
      *
-     * @param timeout        string (injected from UI value of timeout)
-     * @param expectedStatus the {@link com.qubell.services.InstanceStatusCode}, expected by builder for successful finish
-     * @param outputFilePath path to builder output file
+     * @param timeout         string (injected from UI value of timeout)
+     * @param expectedStatus  the {@link com.qubell.services.InstanceStatusCode}, expected by builder for successful finish
+     * @param outputFilePath  path to builder output file
      * @param failureReaction a target build status which should be set when instnace returns failure status
      */
     public QubellBuilder(String timeout, InstanceStatusCode expectedStatus, String outputFilePath, String failureReaction) {
@@ -164,7 +169,6 @@ public abstract class QubellBuilder extends Builder {
     /**
      * Waits for instance status to be equal to {@link #expectedStatus} with given {@link #timeout}
      *
-     *
      * @param buildLog build log
      * @param instance instance to be queries
      * @return true if instance gained expected status, false if timeout exceed before
@@ -199,7 +203,6 @@ public abstract class QubellBuilder extends Builder {
 
     /**
      * Retrieves status of instance and outputs parameters to the log
-     *
      *
      * @param buildLog build log
      * @param instance application instance to be queried for the status
@@ -256,6 +259,7 @@ public abstract class QubellBuilder extends Builder {
 
     /**
      * Relative path to output of command
+     *
      * @return value of path
      */
     public String getOutputFilePath() {
@@ -264,13 +268,14 @@ public abstract class QubellBuilder extends Builder {
 
     /**
      * Target build status which should be set when instnace returns failure status
+     *
      * @return
      */
-    public String getFailureReaction(){
+    public String getFailureReaction() {
         return failureReaction.toString();
     }
 
-    public String isSelectedFailureReason(String candidate){
+    public String isSelectedFailureReason(String candidate) {
         return candidate.equals(getFailureReaction()) ? "selected" : "";
     }
 
@@ -323,12 +328,12 @@ public abstract class QubellBuilder extends Builder {
      * @throws InvalidCredentialsException when configuration contains invalid credentials
      */
     protected void saveReturnValues(AbstractBuild build, PrintStream buildLog, Instance instance) throws InvalidCredentialsException, IOException {
-        if(StringUtils.isEmpty(outputFilePath)){
+        if (StringUtils.isEmpty(outputFilePathResolved)) {
             logMessage(buildLog, "Output file is not specified, ignoring variables save");
             return;
         }
 
-        logMessage(buildLog, "Saving output data to file %s", outputFilePath);
+        logMessage(buildLog, "Saving output data to file %s", outputFilePathResolved);
 
         InstanceStatus status = getServiceFacade().getStatus(instance);
         Map<String, Object> returnValues = status.getReturnValues();
@@ -346,13 +351,13 @@ public abstract class QubellBuilder extends Builder {
 
         String outputContents = JsonParser.serialize(resultMap);
 
-        FilePath workspaceOutput = build.getWorkspace().child(outputFilePath);
+        FilePath workspaceOutput = build.getWorkspace().child(outputFilePathResolved);
         try {
 
             workspaceOutput.getParent().mkdirs();
             workspaceOutput.write(outputContents, null);
-            if(currentMachine instanceof SlaveComputer){
-                FilePath masterWorkspaceOutput = getMasterWorkspaceRoot(build, buildLog).child(outputFilePath);
+            if (currentMachine instanceof SlaveComputer) {
+                FilePath masterWorkspaceOutput = getMasterWorkspaceRoot(build, buildLog).child(outputFilePathResolved);
 
                 masterWorkspaceOutput.getParent().mkdirs();
                 masterWorkspaceOutput.write(outputContents, null);
@@ -369,7 +374,8 @@ public abstract class QubellBuilder extends Builder {
 
     /**
      * Retrieves a path to workspace root on master node
-     * @param build current build
+     *
+     * @param build    current build
      * @param buildLog build log
      * @return path to master root
      */
@@ -396,5 +402,30 @@ public abstract class QubellBuilder extends Builder {
             logMessage(buildLog, "unable to create target directory");
         }
         return targetDirectory;
+    }
+
+    /**
+     * Replaces build/environment variables placeholders within {@code source} with their respectful values
+     *
+     * @param build    current build
+     * @param listener build listener
+     * @param source   current build listeners
+     * @return string with replaced placeholders or with placeholders themselves when no variable matched for a placeholder
+     * @throws IOException
+     * @throws InterruptedException
+     */
+    protected String resolveVariableMacros(AbstractBuild build, BuildListener listener, String source) throws IOException, InterruptedException {
+        if (StringUtils.isBlank(source)) {
+            return source;
+        }
+
+        VariableResolver<String> vr = build.getBuildVariableResolver();
+        EnvVars env = build.getEnvironment(listener);
+
+        return env.expand(Util.replaceMacro(source, vr));
+    }
+
+    protected void resolveParameterPlaceholders(AbstractBuild build, BuildListener listener) throws IOException, InterruptedException {
+        this.outputFilePathResolved = resolveVariableMacros(build, listener, this.outputFilePath);
     }
 }
