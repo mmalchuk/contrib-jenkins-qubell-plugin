@@ -42,6 +42,7 @@ import java.util.Map;
  */
 public class ResultWaitBuilder extends QubellBuilder {
     private final String jobId;
+    private String jobIdResolved;
 
     @DataBoundConstructor
     public ResultWaitBuilder(String jobId, String timeout, String failureReaction) {
@@ -65,11 +66,13 @@ public class ResultWaitBuilder extends QubellBuilder {
      */
     @Override
     public boolean perform(AbstractBuild build, Launcher launcher, BuildListener listener) throws IOException, InterruptedException {
+        resolveParameterPlaceholders(build, listener);
+
         PrintStream buildLog = listener.getLogger();
         Map<String, Object> jobInfo = new HashMap<String, Object>();
 
         try {
-            jobInfo = JsonParser.parseMap(build.getWorkspace().child(jobId).readToString());
+            jobInfo = JsonParser.parseMap(build.getWorkspace().child(jobIdResolved).readToString());
         } catch (IOException e) {
 
             logMessage(buildLog, "Unable to read job file %s", e.getMessage());
@@ -86,6 +89,13 @@ public class ResultWaitBuilder extends QubellBuilder {
         logMessage(buildLog, "Retrieved async job settings, instance id %s, expected status %s, output path %s", instance.getId(), expectedStatus, outputFilePath);
 
         return waitForExpectedStatus(build, buildLog, instance);
+    }
+
+    @Override
+    protected void resolveParameterPlaceholders(AbstractBuild build, BuildListener listener) throws IOException, InterruptedException {
+        super.resolveParameterPlaceholders(build, listener);
+
+        this.jobIdResolved = resolveVariableMacros(build, listener, this.jobId);
     }
 
     /**

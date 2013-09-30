@@ -56,6 +56,7 @@ public class RunCommandBuilder extends QubellBuilder {
     private InstanceOptions instanceOptions;
     private AsyncExecutionOptions asyncExecutionOptions;
     private String jobId;
+    private String jobIdResolved;
 
     /**
      * A data bound constructor, executed by Jenkins
@@ -155,6 +156,7 @@ public class RunCommandBuilder extends QubellBuilder {
         this.instanceIdResolved = resolveVariableMacros(build, listener, this.instanceId);
         this.commandNameResolved = resolveVariableMacros(build, listener, this.commandName);
         this.extraParametersResolved = resolveVariableMacros(build, listener, this.extraParameters);
+        this.jobIdResolved = resolveVariableMacros(build, listener, this.jobId);
     }
 
 
@@ -216,14 +218,14 @@ public class RunCommandBuilder extends QubellBuilder {
             return false;
         }
 
-        if (asyncExecutionOptions != null && StringUtils.isNotBlank(asyncExecutionOptions.getJobId())) {
-            logMessage(buildLog, "Job configured to be ran asynchronously, saving instance id and expected status for job id %s", asyncExecutionOptions.getJobId());
+        if (StringUtils.isNotBlank(jobIdResolved)) {
+            logMessage(buildLog, "Job configured to be ran asynchronously, saving instance id and expected status for job id %s", jobIdResolved);
             Map<String, Object> asyncData = new HashMap<String, Object>();
             asyncData.put(ASYNC_INSTANCE_ID_KEY, instanceId);
             asyncData.put(ASYNC_EXPECTED_STATUS_KEY, expectedStatus);
             asyncData.put(ASYNC_OUTPUT_PATH_KEY, getOutputFilePath());
 
-            saveFileToWorkspace(build, buildLog, JsonParser.serialize(asyncData), asyncExecutionOptions.getJobId());
+            saveFileToWorkspace(build, buildLog, JsonParser.serialize(asyncData), jobIdResolved);
 
             return true;
         }
