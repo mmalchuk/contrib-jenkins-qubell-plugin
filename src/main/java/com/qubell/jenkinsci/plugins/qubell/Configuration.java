@@ -50,7 +50,7 @@ public class Configuration extends GlobalConfiguration {
     }
 
     public Configuration() {
-
+        load();
     }
 
 
@@ -81,7 +81,7 @@ public class Configuration extends GlobalConfiguration {
         // ^Can also use req.bindJSON(this, formData);
         //  (easier when there are many fields; need set* methods for this, like setUseFrench)
         save();
-        return super.configure(req, formData);
+        return true;
     }
 
     /**
