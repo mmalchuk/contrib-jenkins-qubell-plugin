@@ -16,8 +16,7 @@
 
 package com.qubell.services;
 
-import com.qubell.services.exceptions.InvalidCredentialsException;
-import com.qubell.services.exceptions.InvalidInputException;
+import com.qubell.services.exceptions.*;
 
 import java.util.List;
 import java.util.Map;
@@ -62,7 +61,7 @@ public interface QubellFacade {
      * @throws InvalidCredentialsException when credentials are invalid
      * @throws InvalidInputException when command is not supported by instance
      */
-    void runCommand(Instance instance, String commandName, Map<String, Object> parameters) throws InvalidCredentialsException, InvalidInputException;
+    void runCommand(Instance instance, String commandName, Map<String, Object> parameters) throws InvalidCredentialsException, InvalidInputException, NotAuthorizedException, ResourceNotFoundException, InstanceBusyException;
 
     /**
      * Runs a command on instance
@@ -71,7 +70,7 @@ public interface QubellFacade {
      * @throws InvalidCredentialsException when credentials are invalid
      * @throws InvalidInputException when command is not supported by instance
      */
-    void runCommand(Instance instance, String commandName) throws InvalidCredentialsException, InvalidInputException;
+    void runCommand(Instance instance, String commandName) throws InvalidCredentialsException, InvalidInputException, NotAuthorizedException, ResourceNotFoundException, InstanceBusyException;
 
     /**
      * Gets a list of all applications, available for current account

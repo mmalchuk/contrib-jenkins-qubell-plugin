@@ -18,9 +18,9 @@ package com.qubell.jenkinsci.plugins.qubell.builders;
 
 import com.qubell.jenkinsci.plugins.qubell.JsonParser;
 import com.qubell.services.Instance;
+import com.qubell.services.InstanceStatus;
 import com.qubell.services.InstanceStatusCode;
-import com.qubell.services.exceptions.InvalidCredentialsException;
-import com.qubell.services.exceptions.InvalidInputException;
+import com.qubell.services.exceptions.*;
 import hudson.Extension;
 import hudson.Launcher;
 import hudson.model.AbstractBuild;
@@ -28,6 +28,7 @@ import hudson.model.BuildListener;
 import hudson.model.Result;
 import hudson.util.FormValidation;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.time.StopWatch;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.QueryParameter;
 
@@ -206,18 +207,34 @@ public class RunCommandBuilder extends QubellBuilder {
 
         logMessage(buildLog, "Running command %s on instance %s.", commandNameResolved, instance.getId());
 
-        try {
-            getServiceFacade().runCommand(instance, commandNameResolved, JsonParser.parseMap(extraParametersResolved));
-        } catch (InvalidCredentialsException e) {
-            logMessage(buildLog, "Error when running command: invalid credentials");
-            build.setResult(Result.FAILURE);
-            return false;
-        } catch (InvalidInputException e) {
-            logMessage(buildLog, "Error when running command: command is not supported by manifest");
-            build.setResult(Result.FAILURE);
-            return false;
-        }
 
+        int attempt = 0;
+        StopWatch sw = new StopWatch();
+        sw.start();
+
+        while (true) {
+            attempt++;
+            try {
+                getServiceFacade().runCommand(instance, commandNameResolved, JsonParser.parseMap(extraParametersResolved));
+                break;
+            }catch (InstanceBusyException ibe){
+
+                logMessage(buildLog, "Instance not ready to accept requests. Sleep #%d", attempt);
+
+                if (sw.getTime() >= timeout * 1000) {
+                    logMessage(buildLog, "Timeout exceeded");
+                    build.setResult(Result.FAILURE);
+                    return false;
+                }
+
+                Thread.sleep(getConfiguration().getStatusPollingInterval() * 1000);
+            }
+            catch (QubellServiceException e) {
+                logMessage(buildLog, "Error when running command: %s", e.getMessage());
+                build.setResult(Result.FAILURE);
+                return false;
+            }
+        }
         if (StringUtils.isNotBlank(jobIdResolved)) {
             logMessage(buildLog, "Job configured to be ran asynchronously, saving instance id and expected status for job id %s", jobIdResolved);
             Map<String, Object> asyncData = new HashMap<String, Object>();

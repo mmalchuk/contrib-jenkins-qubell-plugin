@@ -54,6 +54,7 @@ public class ApplicationServiceWsImpl extends WebServiceBase implements Applicat
                 addEnvironmentId(environmentId).
                 addParameters(parameters);
 
+
         try {
             LaunchInstanceResponse response = client.path("applications").path(applicationId).path("launch").post(
                     builder.getRequest(), LaunchInstanceResponse.class);

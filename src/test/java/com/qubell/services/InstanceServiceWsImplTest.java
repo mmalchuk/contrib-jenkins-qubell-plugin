@@ -2,9 +2,11 @@ package com.qubell.services;
 
 import com.qubell.jenkinsci.plugins.qubell.Configuration;
 import com.qubell.services.exceptions.InvalidCredentialsException;
+import com.qubell.services.exceptions.NotAuthorizedException;
 import com.qubell.services.ws.*;
 import org.apache.commons.lang.StringUtils;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -19,13 +21,20 @@ public class InstanceServiceWsImplTest extends BaseServiceTest {
 
     private final String applicationId = "51e44bb6e4b031cbc827cc98";
 
+    @Test(expected = NotAuthorizedException.class)
+    public void testIgnoreHtmlPayload() throws Exception {
+        //
+        InstanceServiceWsImpl instanceService = new InstanceServiceWsImpl(getTestConfiguration());
+        instanceService.runCommand("528a85b6e4b0e10add8dfa70", "destroy", new HashMap<String, Object>());
+
+    }
+
     @Test
-    public void testRunCommand() throws Exception
-    {
+    public void testRunCommand() throws Exception {
         ApplicationServiceWsImpl applicationService = new ApplicationServiceWsImpl(getTestConfiguration());
         InstanceServiceWsImpl instanceService = new InstanceServiceWsImpl(getTestConfiguration());
 
-        Map<String,Object> parameters = new HashMap<String, Object>();
+        Map<String, Object> parameters = new HashMap<String, Object>();
         parameters.put("anotherCustomParam", "value");
 
         LaunchInstanceResponse result = applicationService.launch(applicationId, "My Instance", null, null, 300000, null);
@@ -39,9 +48,8 @@ public class InstanceServiceWsImplTest extends BaseServiceTest {
     }
 
     @Test
-    public void testGetStatusWithCurrentWorkflow()  throws Exception
-    {
-        InstanceStatusResponse status = executeWorkflowAndGetStatus("holdon", getTestConfiguration(),getTestConfiguration());
+    public void testGetStatusWithCurrentWorkflow() throws Exception {
+        InstanceStatusResponse status = executeWorkflowAndGetStatus("holdon", getTestConfiguration(), getTestConfiguration());
 
         assertNotNull(status);
         assertNotNull(status.getApplicationId());
@@ -62,13 +70,13 @@ public class InstanceServiceWsImplTest extends BaseServiceTest {
     }
 
     @Test(expected = InvalidCredentialsException.class)
-    public void testInvalidCredentialsForStatus() throws Exception{
+    public void testInvalidCredentialsForStatus() throws Exception {
 
         InstanceStatusResponse status = executeWorkflowAndGetStatus("returnstuff", getTestConfiguration(), new Configuration(getTestConfiguration().getUrl(), "invalid", "invalid", true, true));
     }
 
     @Test(expected = InvalidCredentialsException.class)
-    public void testInvalidCredentialsForRunCommand() throws Exception{
+    public void testInvalidCredentialsForRunCommand() throws Exception {
 
         InstanceStatusResponse status = executeWorkflowAndGetStatus("returnstuff", new Configuration(getTestConfiguration().getUrl(), "invalid", "invalid", true, true), getTestConfiguration());
     }
@@ -79,7 +87,7 @@ public class InstanceServiceWsImplTest extends BaseServiceTest {
         InstanceServiceWsImpl runCommandInstanceService = new InstanceServiceWsImpl(runCommandConfig);
         InstanceServiceWsImpl checkStatusInstanceService = new InstanceServiceWsImpl(checkStatusConfig);
 
-        Map<String,Object> parameters = new HashMap<String, Object>();
+        Map<String, Object> parameters = new HashMap<String, Object>();
         parameters.put("anotherCustomParam", "value");
 
         LaunchInstanceResponse result = applicationService.launch(applicationId, "My Instance", null, null, 300000, null);

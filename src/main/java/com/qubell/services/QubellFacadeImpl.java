@@ -17,8 +17,7 @@
 package com.qubell.services;
 
 import com.qubell.jenkinsci.plugins.qubell.Configuration;
-import com.qubell.services.exceptions.InvalidCredentialsException;
-import com.qubell.services.exceptions.InvalidInputException;
+import com.qubell.services.exceptions.*;
 import com.qubell.services.toa.ApplicationTOA;
 import com.qubell.services.toa.EnvironmentTOA;
 import com.qubell.services.toa.InstanceStatusTOA;
@@ -101,7 +100,7 @@ public class QubellFacadeImpl implements QubellFacade {
     /**
      * {@inheritDoc}
      */
-    public void runCommand(Instance instance, String commandName) throws InvalidCredentialsException, InvalidInputException {
+    public void runCommand(Instance instance, String commandName) throws InvalidCredentialsException, InvalidInputException, NotAuthorizedException, ResourceNotFoundException, InstanceBusyException {
         runCommand(instance, commandName, null);
     }
 
@@ -142,7 +141,7 @@ public class QubellFacadeImpl implements QubellFacade {
     /**
      * {@inheritDoc}
      */
-    public void runCommand(Instance instance, String commandName, Map<String, Object> parameters) throws InvalidCredentialsException, InvalidInputException {
+    public void runCommand(Instance instance, String commandName, Map<String, Object> parameters) throws InvalidCredentialsException, InvalidInputException, NotAuthorizedException, ResourceNotFoundException, InstanceBusyException {
         getInstanceService().runCommand(instance.getId(), commandName, parameters);
     }
 }

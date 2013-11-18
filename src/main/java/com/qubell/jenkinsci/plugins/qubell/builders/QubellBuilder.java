@@ -70,7 +70,7 @@ public abstract class QubellBuilder extends Builder {
     /**
      * Status wait timeout in seconds
      */
-    private final int timeout;
+    protected final int timeout;
 
     /**
      * Output file name for consolidated report
