@@ -21,6 +21,9 @@ import com.qubell.jenkinsci.plugins.qubell.JsonParser;
 import com.qubell.jenkinsci.plugins.qubell.VariablesAction;
 import com.qubell.services.*;
 import com.qubell.services.exceptions.InvalidCredentialsException;
+import com.qubell.services.exceptions.NotAuthorizedException;
+import com.qubell.services.exceptions.QubellServiceException;
+import com.qubell.services.exceptions.ResourceNotFoundException;
 import hudson.EnvVars;
 import hudson.FilePath;
 import hudson.Util;
@@ -178,7 +181,7 @@ public abstract class QubellBuilder extends Builder {
      * @throws InvalidCredentialsException when credentials in configuration are invalid
      * @throws InterruptedException        when wait was interrupted
      */
-    private boolean waitForInstanceStatus(PrintStream buildLog, Instance instance) throws InvalidCredentialsException, InterruptedException {
+    private boolean waitForInstanceStatus(PrintStream buildLog, Instance instance) throws InvalidCredentialsException, InterruptedException, ResourceNotFoundException, NotAuthorizedException {
         logMessage(buildLog, "Waiting for instance status %s with timeout of %d seconds", expectedStatus, timeout);
 
         StopWatch sw = new StopWatch();
@@ -212,7 +215,7 @@ public abstract class QubellBuilder extends Builder {
      * @return instance status
      * @throws InvalidCredentialsException when configuration contains invalid credentials
      */
-    protected InstanceStatus getInstanceStatus(PrintStream buildLog, Instance instance) throws InvalidCredentialsException {
+    protected InstanceStatus getInstanceStatus(PrintStream buildLog, Instance instance) throws InvalidCredentialsException, ResourceNotFoundException, NotAuthorizedException {
         InstanceStatus status = getServiceFacade().getStatus(instance);
 
         logMessage(buildLog, "Instance status %s", status.getStatus());
@@ -270,9 +273,9 @@ public abstract class QubellBuilder extends Builder {
     }
 
     /**
-     * Target build status which should be set when instnace returns failure status
+     * Target build status which should be set when instance returns failure status
      *
-     * @return
+     * @return desired build status
      */
     public String getFailureReaction() {
         return failureReaction.toString();
@@ -305,8 +308,8 @@ public abstract class QubellBuilder extends Builder {
                 Thread.sleep(2000);
                 saveReturnValues(build, buildLog, instance);
             }
-        } catch (InvalidCredentialsException e) {
-            logMessage(buildLog, "Error when launching: invalid credentials or application id.");
+        } catch (QubellServiceException e) {
+            logMessage(buildLog, "Error when getting instance status: %s", e.getMessage());
             build.setResult(Result.FAILURE);
             return false;
         } catch (InterruptedException e) {
@@ -330,7 +333,7 @@ public abstract class QubellBuilder extends Builder {
      * @param instance a qubell instance to be queried for status
      * @throws InvalidCredentialsException when configuration contains invalid credentials
      */
-    protected void saveReturnValues(AbstractBuild build, PrintStream buildLog, Instance instance) throws InvalidCredentialsException, IOException {
+    protected void saveReturnValues(AbstractBuild build, PrintStream buildLog, Instance instance) throws InvalidCredentialsException, IOException, ResourceNotFoundException, NotAuthorizedException {
         if (StringUtils.isEmpty(outputFilePathResolved)) {
             logMessage(buildLog, "Output file is not specified, ignoring variables save");
             return;

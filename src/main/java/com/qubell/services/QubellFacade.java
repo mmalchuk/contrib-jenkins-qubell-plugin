@@ -51,7 +51,7 @@ public interface QubellFacade {
      * @return valid instance status object
      * @throws InvalidCredentialsException when credentials are invalid
      */
-    InstanceStatus getStatus(Instance instance) throws InvalidCredentialsException;
+    InstanceStatus getStatus(Instance instance) throws InvalidCredentialsException, ResourceNotFoundException, NotAuthorizedException;
 
     /**
      * Runs a command on instance with extra parameter

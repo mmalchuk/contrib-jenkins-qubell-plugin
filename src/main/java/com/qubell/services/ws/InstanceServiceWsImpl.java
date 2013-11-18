@@ -82,19 +82,33 @@ public class InstanceServiceWsImpl extends WebServiceBase implements InstanceSer
     }
 
 
-    public InstanceStatusResponse getStatus(String instanceId) throws InvalidCredentialsException {
+    public InstanceStatusResponse getStatus(String instanceId) throws InvalidCredentialsException, ResourceNotFoundException, com.qubell.services.exceptions.NotAuthorizedException {
         WebClient client = getWebClient();
 
         try {
             InstanceStatusResponse response = client.path("instances").path(instanceId).get(InstanceStatusResponse.class);
 
             return response;
+        }
+        catch (NotAuthorizedException nae) {
+            throw new com.qubell.services.exceptions.InvalidCredentialsException("The specified credentials are not valid");
         } catch (NotFoundException nfe) {
-            throw new InvalidCredentialsException("Invalid credentials ", nfe);
+            throw new ResourceNotFoundException("Specified instance does not exist", nfe);
         } catch (WebApplicationException e) {
-            if (e.getResponse().getStatus() == 401 || e.getResponse().getStatus() == 404) {
-                throw new InvalidCredentialsException("Invalid credentials ", e);
+            int status = e.getResponse().getStatus();
+
+            if (status == 401) {
+                throw new com.qubell.services.exceptions.InvalidCredentialsException("The specified credentials are not valid");
             }
+
+            if (status == 403) {
+                throw new com.qubell.services.exceptions.NotAuthorizedException("User not authorized to launch workflow");
+            }
+
+            if (status == 404) {
+                throw new ResourceNotFoundException("Specified instance does not exist");
+            }
+
             throw e;
         }
 

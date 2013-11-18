@@ -93,7 +93,7 @@ public class QubellFacadeImpl implements QubellFacade {
     /**
      * {@inheritDoc}
      */
-    public InstanceStatus getStatus(Instance instance) throws InvalidCredentialsException {
+    public InstanceStatus getStatus(Instance instance) throws InvalidCredentialsException, ResourceNotFoundException, NotAuthorizedException {
         return new InstanceStatusTOA().fromWsResponse(getInstanceService().getStatus(instance.getId()));
     }
 

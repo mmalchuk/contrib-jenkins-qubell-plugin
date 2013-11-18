@@ -26,5 +26,5 @@ import java.util.Map;
  */
 public interface InstanceService {
     RunCommandResponse runCommand(String instanceId, String commandName, Map<String, Object> parameters) throws InvalidCredentialsException, InvalidInputException, NotAuthorizedException, ResourceNotFoundException, InstanceBusyException;
-    InstanceStatusResponse getStatus(String instanceId) throws InvalidCredentialsException;
+    InstanceStatusResponse getStatus(String instanceId) throws InvalidCredentialsException, ResourceNotFoundException, NotAuthorizedException;
 }
