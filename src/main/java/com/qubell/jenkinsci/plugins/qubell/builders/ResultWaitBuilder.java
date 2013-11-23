@@ -31,7 +31,6 @@ import org.kohsuke.stapler.QueryParameter;
 import javax.servlet.ServletException;
 import java.io.IOException;
 import java.io.PrintStream;
-import java.util.HashMap;
 import java.util.Map;
 
 
@@ -69,7 +68,7 @@ public class ResultWaitBuilder extends QubellBuilder {
         resolveParameterPlaceholders(build, listener);
 
         PrintStream buildLog = listener.getLogger();
-        Map<String, Object> jobInfo = new HashMap<String, Object>();
+        Map<String, Object> jobInfo;
 
         try {
             jobInfo = JsonParser.parseMap(build.getWorkspace().child(jobIdResolved).readToString());

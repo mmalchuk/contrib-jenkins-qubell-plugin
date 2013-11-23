@@ -193,13 +193,19 @@ public abstract class QubellBuilder extends Builder {
             attempt++;
             logMessage(buildLog, "Attempt #%d", attempt);
             if (sw.getTime() >= timeout * 1000) {
-                logMessage(buildLog, "Timeout exceeded");
+                logMessage(buildLog, "Instance did not return expected status (%s) within given timeout of %s seconds", expectedStatus, timeout);
+
                 return false;
             }
 
-            InstanceStatus instanceStatus = getInstanceStatus(buildLog, instance);
-            if (instanceStatus.getStatus().equals(expectedStatus)) {
+            InstanceStatusCode instanceStatus = getInstanceStatus(buildLog, instance).getStatus();
+            if (instanceStatus.equals(expectedStatus)) {
                 return true;
+            }
+            else if(instanceStatus.equals(InstanceStatusCode.FAILED)){
+                //In case Failed status is not actually what we expect, considering it an issue
+                logMessage(buildLog, "Instance returned Failed status, aborting further status wait...");
+                return false;
             }
 
             Thread.sleep(getConfiguration().getStatusPollingInterval() * 1000);
@@ -298,7 +304,6 @@ public abstract class QubellBuilder extends Builder {
     protected boolean waitForExpectedStatus(AbstractBuild build, PrintStream buildLog, Instance instance) {
         try {
             if (!waitForInstanceStatus(buildLog, instance)) {
-                logMessage(buildLog, "Instance did not return expected status (%s) within given timeout of %s seconds", expectedStatus, timeout);
 
                 build.setResult(failureReaction);
 
