@@ -19,8 +19,7 @@ package com.qubell.jenkinsci.plugins.qubell.builders;
 import com.qubell.jenkinsci.plugins.qubell.Configuration;
 import com.qubell.jenkinsci.plugins.qubell.JsonParser;
 import com.qubell.services.*;
-import com.qubell.services.exceptions.InvalidCredentialsException;
-import com.qubell.services.exceptions.InvalidInputException;
+import com.qubell.services.exceptions.*;
 import hudson.Extension;
 import hudson.FilePath;
 import hudson.Launcher;
@@ -207,16 +206,10 @@ public class StartInstanceBuilder extends QubellBuilder {
             try {
                 updatedVersion = getServiceFacade().updateManifest(application, manifest);
                 logMessage(buildLog, "Manifest updated. New version is %s", updatedVersion.toString());
-            } catch (InvalidCredentialsException e) {
-                logMessage(buildLog, "Error when updating manifest: invalid credentials.");
+            } catch (QubellServiceException e) {
+                logMessage(buildLog, "Error when updating manifest: %s", e.getMessage());
                 build.setResult(Result.FAILURE);
                 return false;
-
-            } catch (InvalidInputException e) {
-                logMessage(buildLog, "Invalid manifest file");
-                build.setResult(Result.FAILURE);
-                return false;
-
             }
         }
 
@@ -228,8 +221,8 @@ public class StartInstanceBuilder extends QubellBuilder {
             logMessage(buildLog, "Launched instance %s", instance.getId());
             saveBuildVariable(build, INSTANCE_ID_KEY, instance.getId(), buildLog);
 
-        } catch (InvalidCredentialsException e) {
-            logMessage(buildLog, "Error when launching: invalid credentials or application id.");
+        } catch (QubellServiceException e) {
+            logMessage(buildLog, "Error when launching instance: %s", e.getMessage());
             build.setResult(Result.FAILURE);
             return false;
         }
@@ -273,8 +266,10 @@ public class StartInstanceBuilder extends QubellBuilder {
          *
          * @return json object for apps list
          * @throws InvalidCredentialsException when credentials invalid
+         * @throws NotAuthorizedException      when user not authorized to list applications
+         * @throws ResourceNotFoundException   when organization not found
          */
-        public String getApplicationsTypeAheadJson() throws InvalidCredentialsException {
+        public String getApplicationsTypeAheadJson() throws InvalidCredentialsException, NotAuthorizedException, ResourceNotFoundException {
             return JsonParser.serialize(new QubellFacadeImpl(Configuration.get()).getAllApplications());
         }
 
@@ -283,8 +278,10 @@ public class StartInstanceBuilder extends QubellBuilder {
          *
          * @return json object for envs list
          * @throws InvalidCredentialsException when credentials invalid
+         * @throws NotAuthorizedException      when user not authorized to list environments
+         * @throws ResourceNotFoundException   when organization not found
          */
-        public String getEnvironmentsTypeAheadJson() throws InvalidCredentialsException {
+        public String getEnvironmentsTypeAheadJson() throws InvalidCredentialsException, NotAuthorizedException, ResourceNotFoundException {
             return JsonParser.serialize(new QubellFacadeImpl(Configuration.get()).getAllEnvironments());
         }
 

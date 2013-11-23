@@ -31,7 +31,6 @@ import java.util.Map;
 
 /**
  * @author Alex Krupnov
- * @created 17.07.13 11:27
  */
 public class InstanceServiceWsImpl extends WebServiceBase implements InstanceService {
 
@@ -45,10 +44,9 @@ public class InstanceServiceWsImpl extends WebServiceBase implements InstanceSer
         builder.addParameters(parameters);
 
         try {
-            RunCommandResponse response = client.path("instances").path(instanceId).path(commandName).post(
-                    builder.getRequest(), RunCommandResponse.class);
 
-            return response;
+            return client.path("instances").path(instanceId).path(commandName).post(
+                    builder.getRequest(), RunCommandResponse.class);
         } catch (NotAuthorizedException nae) {
             throw new com.qubell.services.exceptions.InvalidCredentialsException("The specified credentials are not valid");
         } catch (NotFoundException nfe) {
@@ -58,7 +56,7 @@ public class InstanceServiceWsImpl extends WebServiceBase implements InstanceSer
         } catch (WebApplicationException e) {
             int status = e.getResponse().getStatus();
             if (status == 400) {
-                throw new InvalidInputException("Invalid input", e);
+                throw new InvalidInputException("Command is not supported", e);
             }
             if (status == 401) {
                 throw new com.qubell.services.exceptions.InvalidCredentialsException("The specified credentials are not valid");
@@ -77,8 +75,6 @@ public class InstanceServiceWsImpl extends WebServiceBase implements InstanceSer
 
             throw e;
         }
-
-
     }
 
 
@@ -86,9 +82,7 @@ public class InstanceServiceWsImpl extends WebServiceBase implements InstanceSer
         WebClient client = getWebClient();
 
         try {
-            InstanceStatusResponse response = client.path("instances").path(instanceId).get(InstanceStatusResponse.class);
-
-            return response;
+            return client.path("instances").path(instanceId).get(InstanceStatusResponse.class);
         }
         catch (NotAuthorizedException nae) {
             throw new com.qubell.services.exceptions.InvalidCredentialsException("The specified credentials are not valid");
@@ -111,7 +105,5 @@ public class InstanceServiceWsImpl extends WebServiceBase implements InstanceSer
 
             throw e;
         }
-
-
     }
 }
