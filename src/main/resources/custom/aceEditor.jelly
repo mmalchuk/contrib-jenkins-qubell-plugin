@@ -63,17 +63,8 @@ limitations under the License.
             readonly="${attrs.readonly}"
             codemirror-mode="${attrs['codemirror-mode']}"
             codemirror-config="${attrs['codemirror-config']}"><st:out value="${value}" /></textarea>
+   <script src="${resURL}/plugin/qubell/ace/ace.js"/>
    <script>
-
-    //Preventing double load of ace script
-    var node = document.getElementsByTagName("head")[0] || document.body;
-    if(!document.getElementById("acescript")){
-        var script = document.createElement("script");
-        script.type="text/javascript";
-        script.src = "${resURL}/plugin/qubell/ace/ace.js";
-        script.id = "acescript";
-        node.appendChild(script);
-    }
 
    Behaviour.specify("DIV.ace", 'textarea', 100, function (e) {
         var editor = ace.edit(e.id);
