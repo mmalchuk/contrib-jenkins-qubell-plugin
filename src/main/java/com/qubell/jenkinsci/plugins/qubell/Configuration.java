@@ -50,7 +50,7 @@ public class Configuration extends GlobalConfiguration {
     }
 
     public Configuration() {
-
+        load();
     }
 
 
@@ -78,10 +78,11 @@ public class Configuration extends GlobalConfiguration {
         url = formData.getString("url");
         statusPollingInterval = formData.getInt("statusPollingInterval");
         skipCertificateChecks = formData.getBoolean("skipCertificateChecks");
+        enableMessageLogging = formData.getBoolean("enableMessageLogging");
         // ^Can also use req.bindJSON(this, formData);
         //  (easier when there are many fields; need set* methods for this, like setUseFrench)
         save();
-        return super.configure(req, formData);
+        return true;
     }
 
     /**

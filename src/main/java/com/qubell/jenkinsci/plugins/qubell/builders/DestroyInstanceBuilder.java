@@ -31,10 +31,11 @@ public class DestroyInstanceBuilder extends RunCommandBuilder {
     /**
      * @param timeout         timeout string value coming from form
      * @param instanceOptions pre-defined instance options see {@link #getInstanceId()}
+     * @param failureReaction a target build status which should be set when destroy fails
      */
     @DataBoundConstructor
-    public DestroyInstanceBuilder(String timeout, InstanceOptions instanceOptions) {
-        super("destroy", "{}", timeout, instanceOptions, null, InstanceStatusCode.DESTROYED);
+    public DestroyInstanceBuilder(String timeout, InstanceOptions instanceOptions, String failureReaction) {
+        super("destroy", "{}", timeout, instanceOptions, null, InstanceStatusCode.DESTROYED, failureReaction, null);
     }
 
     /**

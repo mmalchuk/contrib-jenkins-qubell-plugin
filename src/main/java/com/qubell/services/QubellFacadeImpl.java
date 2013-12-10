@@ -17,8 +17,7 @@
 package com.qubell.services;
 
 import com.qubell.jenkinsci.plugins.qubell.Configuration;
-import com.qubell.services.exceptions.InvalidCredentialsException;
-import com.qubell.services.exceptions.InvalidInputException;
+import com.qubell.services.exceptions.*;
 import com.qubell.services.toa.ApplicationTOA;
 import com.qubell.services.toa.EnvironmentTOA;
 import com.qubell.services.toa.InstanceStatusTOA;
@@ -71,7 +70,7 @@ public class QubellFacadeImpl implements QubellFacade {
     /**
      * {@inheritDoc}
      */
-    public Instance launchInstance(InstanceSpecification instanceSpecification, LaunchSettings launchSettings) throws InvalidCredentialsException {
+    public Instance launchInstance(InstanceSpecification instanceSpecification, LaunchSettings launchSettings) throws InvalidCredentialsException, NotAuthorizedException, InvalidInputException, ResourceNotFoundException {
         LaunchInstanceResponse instanceResponse = getApplicationService().launch(
                 instanceSpecification.getApplication().getId(),
                 instanceSpecification.getInstanceName(),
@@ -87,25 +86,18 @@ public class QubellFacadeImpl implements QubellFacade {
     /**
      * {@inheritDoc}
      */
-    public Integer updateManifest(Application application, Manifest manifest) throws InvalidCredentialsException, InvalidInputException {
+    public Integer updateManifest(Application application, Manifest manifest) throws InvalidCredentialsException, InvalidInputException, ResourceNotFoundException, NotAuthorizedException {
         return getApplicationService().updateManifest(application.getId(), manifest.getContent()).getVersion();
     }
 
     /**
      * {@inheritDoc}
      */
-    public InstanceStatus getStatus(Instance instance) throws InvalidCredentialsException {
+    public InstanceStatus getStatus(Instance instance) throws InvalidCredentialsException, ResourceNotFoundException, NotAuthorizedException {
         return new InstanceStatusTOA().fromWsResponse(getInstanceService().getStatus(instance.getId()));
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    public void runCommand(Instance instance, String commandName) throws InvalidCredentialsException, InvalidInputException {
-        runCommand(instance, commandName, null);
-    }
-
-    public List<Application> getAllApplications() throws InvalidCredentialsException {
+    public List<Application> getAllApplications() throws InvalidCredentialsException, NotAuthorizedException, ResourceNotFoundException {
         List<Application> applications = new ArrayList<Application>();
         List<Organization> organizations = getOrganizations();
 
@@ -120,7 +112,7 @@ public class QubellFacadeImpl implements QubellFacade {
         return applications;
     }
 
-    public List<Environment> getAllEnvironments() throws InvalidCredentialsException {
+    public List<Environment> getAllEnvironments() throws InvalidCredentialsException, NotAuthorizedException, ResourceNotFoundException {
         List<Environment> environments = new ArrayList<Environment>();
         List<Organization> organizations = getOrganizations();
 
@@ -135,14 +127,14 @@ public class QubellFacadeImpl implements QubellFacade {
         return environments;
     }
 
-    private List<com.qubell.services.ws.Organization> getOrganizations() throws InvalidCredentialsException {
+    private List<com.qubell.services.ws.Organization> getOrganizations() throws InvalidCredentialsException, NotAuthorizedException {
         return getOrganizationService().listOrganizations();
     }
 
     /**
      * {@inheritDoc}
      */
-    public void runCommand(Instance instance, String commandName, Map<String, Object> parameters) throws InvalidCredentialsException, InvalidInputException {
+    public void runCommand(Instance instance, String commandName, Map<String, Object> parameters) throws InvalidCredentialsException, InvalidInputException, NotAuthorizedException, ResourceNotFoundException, InstanceBusyException {
         getInstanceService().runCommand(instance.getId(), commandName, parameters);
     }
 }

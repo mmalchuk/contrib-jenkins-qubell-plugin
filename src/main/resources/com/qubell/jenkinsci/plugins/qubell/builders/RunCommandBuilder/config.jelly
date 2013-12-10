@@ -24,6 +24,12 @@ limitations under the License.
         </f:entry>
     </f:optionalBlock>
 
+    <f:optionalBlock name="asyncExecutionOptions" title="Execute asynchronously" checked="${instance.jobId != null}">
+        <f:entry title="Identifier for this job" field="jobId" value="${instance.jobId}">
+            <f:textbox />
+        </f:entry>
+    </f:optionalBlock>
+
     <f:entry title="Name" field="name">
         <f:textbox/>
     </f:entry>
@@ -39,4 +45,9 @@ limitations under the License.
     <f:entry field="outputFilePath" title="Relative path to command output file">
         <f:textbox/>
     </f:entry>
+    <f:advanced>
+        <f:entry name="failureReaction" title="When instance fails" field="failureReaction">
+            <f:select/>
+        </f:entry>
+    </f:advanced>
 </j:jelly>

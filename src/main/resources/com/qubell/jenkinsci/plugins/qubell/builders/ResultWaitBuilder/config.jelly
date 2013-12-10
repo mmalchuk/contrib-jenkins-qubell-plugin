@@ -15,11 +15,9 @@ limitations under the License.
 -->
 
 <j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form">
-    <f:optionalBlock name="instanceOptions" title="Use custom instance id" checked="${instance.instanceId != null}">
-        <f:entry title="Custom Instance Id" field="instanceId" value="${instance.instanceId}">
-            <f:textbox />
-        </f:entry>
-    </f:optionalBlock>
+    <f:entry field="jobId" title="Job id to pick">
+        <f:textbox/>
+    </f:entry>
 
     <f:entry field="timeout" title="Timeout (s)">
         <f:textbox default="60"/>
@@ -29,5 +27,4 @@ limitations under the License.
             <f:select/>
         </f:entry>
     </f:advanced>
-
 </j:jelly>
