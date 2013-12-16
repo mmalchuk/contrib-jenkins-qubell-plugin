@@ -21,6 +21,7 @@ import com.qubell.services.exceptions.InvalidCredentialsException;
 import com.qubell.services.exceptions.ResourceNotFoundException;
 import org.apache.cxf.jaxrs.client.WebClient;
 
+import javax.ws.rs.HttpMethod;
 import javax.ws.rs.NotAuthorizedException;
 import javax.ws.rs.NotFoundException;
 import javax.ws.rs.WebApplicationException;
@@ -29,12 +30,14 @@ import java.util.List;
 
 /**
  * WS wrapper for Qubell service
+ *
  * @author Alex Krupnov
  */
 public class OrganizationServiceWsImpl extends WebServiceBase implements OrganizationService {
 
     /**
      * Initializes WS wrapper with configuration
+     *
      * @param configuration plugin configuration
      */
     public OrganizationServiceWsImpl(Configuration configuration) {
@@ -48,7 +51,7 @@ public class OrganizationServiceWsImpl extends WebServiceBase implements Organiz
         WebClient client = getWebClient();
 
         try {
-            List<Organization> response = new ArrayList<Organization>(client.path("organizations").getCollection(Organization.class));
+            List<Organization> response = new ArrayList<Organization>(invokeAndGetCollection(HttpMethod.GET, client.path("organizations"), null, Organization.class));
             return response;
 
         } catch (NotAuthorizedException nae) {
@@ -74,9 +77,9 @@ public class OrganizationServiceWsImpl extends WebServiceBase implements Organiz
         WebClient client = getWebClient();
 
         try {
-            List<Application> response = new ArrayList<Application>(client.path("organizations").path(organization.getId()).
-                    path("applications")
-                    .getCollection(Application.class));
+            List<Application> response = new ArrayList<Application>(invokeAndGetCollection(HttpMethod.GET, client.path("organizations").path(organization.getId()).
+                    path("applications"), null,
+                    Application.class));
             return response;
 
         } catch (NotAuthorizedException nae) {
@@ -108,9 +111,9 @@ public class OrganizationServiceWsImpl extends WebServiceBase implements Organiz
         WebClient client = getWebClient();
 
         try {
-            List<Environment> response = new ArrayList<Environment>(client.path("organizations").path(organization.getId()).
-                    path("environments")
-                    .getCollection(Environment.class));
+            List<Environment> response = new ArrayList<Environment>(invokeAndGetCollection(HttpMethod.GET, client.path("organizations").path(organization.getId()).
+                    path("environments"), null,
+                    Environment.class));
             return response;
 
         } catch (NotAuthorizedException nae) {

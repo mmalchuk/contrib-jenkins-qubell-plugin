@@ -23,20 +23,19 @@ import com.qubell.services.exceptions.InvalidInputException;
 import com.qubell.services.exceptions.ResourceNotFoundException;
 import org.apache.cxf.jaxrs.client.WebClient;
 
-import javax.ws.rs.BadRequestException;
-import javax.ws.rs.NotAuthorizedException;
-import javax.ws.rs.NotFoundException;
-import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.*;
 import java.util.Map;
 
 /**
  * {@inheritDoc}
+ *
  * @author Alex Krupnov
  */
 public class ApplicationServiceWsImpl extends WebServiceBase implements ApplicationService {
 
     /**
      * Inits service with system configuration
+     *
      * @param configuration a plugin config
      */
     public ApplicationServiceWsImpl(Configuration configuration) {
@@ -59,7 +58,7 @@ public class ApplicationServiceWsImpl extends WebServiceBase implements Applicat
 
 
         try {
-            LaunchInstanceResponse response = client.path("applications").path(applicationId).path("launch").post(
+            LaunchInstanceResponse response = invoke(HttpMethod.POST, client.path("applications").path(applicationId).path("launch"),
                     builder.getRequest(), LaunchInstanceResponse.class);
             return response;
 
@@ -97,7 +96,7 @@ public class ApplicationServiceWsImpl extends WebServiceBase implements Applicat
         WebClient client = getWebClient();
         client.header("Content-Type", "application/x-yaml");
         try {
-            UpdateManifestResponse response = client.path("applications").path(applicationId).path("manifest").put(
+            UpdateManifestResponse response = invoke(HttpMethod.PUT, client.path("applications").path(applicationId).path("manifest"),
                     manifest, UpdateManifestResponse.class
             );
 

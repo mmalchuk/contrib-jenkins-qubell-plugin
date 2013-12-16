@@ -19,19 +19,26 @@ package com.qubell.services.ws;
 import com.qubell.jenkinsci.plugins.qubell.Configuration;
 import hudson.cli.NoCheckTrustManager;
 import org.apache.cxf.configuration.jsse.TLSClientParameters;
+import org.apache.cxf.helpers.CastUtils;
 import org.apache.cxf.interceptor.LoggingInInterceptor;
 import org.apache.cxf.interceptor.LoggingOutInterceptor;
 import org.apache.cxf.jaxrs.client.WebClient;
 import org.apache.cxf.jaxrs.impl.RuntimeDelegateImpl;
+import org.apache.cxf.jaxrs.utils.ParameterizedCollectionType;
 import org.apache.cxf.transport.http.HTTPConduit;
 
+import javax.net.ssl.SSLException;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
+import javax.ws.rs.HttpMethod;
+import javax.ws.rs.client.ClientException;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 import javax.ws.rs.ext.RuntimeDelegate;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -40,6 +47,7 @@ import java.util.List;
  * @author Alex Krupnov
  */
 public abstract class WebServiceBase {
+
     /**
      * App configuration
      */
@@ -126,5 +134,80 @@ public abstract class WebServiceBase {
         } catch (Exception e) {
             RuntimeDelegate.setInstance(new RuntimeDelegateImpl());
         }
+    }
+
+    /**
+     * Invokes a specified method on http client, doing retry logic for SSL context
+     * @param method method to invoke
+     * @param client prepared client
+     * @param responseClass response class
+     * @param <T> type of response class
+     * @return response object
+     */
+    protected <T> T invoke(String method, WebClient client, Class<T> responseClass) {
+        return invoke(method, client, null, responseClass);
+    }
+
+    /**
+     * Invokes a specified method on http client, doing retry logic for SSL context
+     * @param method method to invoke
+     * @param client prepared client
+     * @param body optional request body
+     * @param responseClass response class
+     * @param <T> type of response class
+     * @return response object
+     */
+    protected <T> T invoke(String method, WebClient client, Object body, Class<T> responseClass) {
+        int attempt = 0;
+        while (true) {
+            try {
+                if (method.equals(HttpMethod.GET)) {
+                    return client.get(responseClass);
+                }
+                if (method.equals(HttpMethod.POST)) {
+                    return client.post(body, responseClass);
+                }
+                if(method.equals(HttpMethod.PUT)){
+                    return client.put(body, responseClass);
+                }
+            } catch (ClientException ex) {
+                if (attempt > 5 || !causedBySsl(ex)) {
+                    throw ex;
+                }
+                attempt++;
+            }
+        }
+    }
+
+    protected  <T> Collection<? extends T> invokeAndGetCollection(String method, WebClient client, Object body,
+                                                              Class<T> memberClass) {
+        int attempt = 0;
+        while (true) {
+            try {
+                if (method.equals(HttpMethod.GET)) {
+                    return client.getCollection(memberClass);
+                }
+                if (method.equals(HttpMethod.POST)) {
+                    return client.postAndGetCollection(body, memberClass);
+                }
+            } catch (ClientException ex) {
+                if (attempt > 5 || !causedBySsl(ex)) {
+                    throw ex;
+                }
+                attempt++;
+            }
+        }
+
+    }
+
+
+    private boolean causedBySsl(Throwable ex) {
+        if (ex instanceof SSLException) {
+            return true;
+        }
+        if (ex.getCause() == null) {
+            return false;
+        }
+        return causedBySsl(ex.getCause());
     }
 }
