@@ -23,10 +23,9 @@ import com.qubell.services.exceptions.InvalidInputException;
 import com.qubell.services.exceptions.ResourceNotFoundException;
 import org.apache.cxf.jaxrs.client.WebClient;
 
-import javax.ws.rs.BadRequestException;
-import javax.ws.rs.NotAuthorizedException;
-import javax.ws.rs.NotFoundException;
-import javax.ws.rs.WebApplicationException;
+import javax.net.ssl.SSLException;
+import javax.ws.rs.*;
+import javax.ws.rs.client.ClientException;
 import java.util.Map;
 
 /**
@@ -44,9 +43,7 @@ public class InstanceServiceWsImpl extends WebServiceBase implements InstanceSer
         builder.addParameters(parameters);
 
         try {
-
-            return client.path("instances").path(instanceId).path(commandName).post(
-                    builder.getRequest(), RunCommandResponse.class);
+            return invoke(HttpMethod.POST, client.path("instances").path(instanceId).path(commandName), builder.getRequest(), RunCommandResponse.class);
         } catch (NotAuthorizedException nae) {
             throw new com.qubell.services.exceptions.InvalidCredentialsException("The specified credentials are not valid");
         } catch (NotFoundException nfe) {
@@ -69,7 +66,7 @@ public class InstanceServiceWsImpl extends WebServiceBase implements InstanceSer
             if (status == 404) {
                 throw new ResourceNotFoundException("Specified instance does not exist");
             }
-            if(status == 409){
+            if (status == 409) {
                 throw new InstanceBusyException("Not allowed to run workflow currently since another workflow is already running");
             }
 
@@ -77,14 +74,12 @@ public class InstanceServiceWsImpl extends WebServiceBase implements InstanceSer
         }
     }
 
-
     public InstanceStatusResponse getStatus(String instanceId) throws InvalidCredentialsException, ResourceNotFoundException, com.qubell.services.exceptions.NotAuthorizedException {
         WebClient client = getWebClient();
 
         try {
-            return client.path("instances").path(instanceId).get(InstanceStatusResponse.class);
-        }
-        catch (NotAuthorizedException nae) {
+            return invoke(HttpMethod.GET, client.path("instances").path(instanceId), InstanceStatusResponse.class);
+        } catch (NotAuthorizedException nae) {
             throw new com.qubell.services.exceptions.InvalidCredentialsException("The specified credentials are not valid");
         } catch (NotFoundException nfe) {
             throw new ResourceNotFoundException("Specified instance does not exist", nfe);
