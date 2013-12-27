@@ -17,23 +17,25 @@
 package com.qubell.services.ws;
 
 import com.qubell.jenkinsci.plugins.qubell.Configuration;
+import com.qubell.services.exceptions.InstanceBusyException;
 import com.qubell.services.exceptions.InvalidCredentialsException;
 import com.qubell.services.exceptions.InvalidInputException;
+import com.qubell.services.exceptions.ResourceNotFoundException;
 import org.apache.cxf.jaxrs.client.WebClient;
 
-import javax.ws.rs.BadRequestException;
-import javax.ws.rs.NotFoundException;
-import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.*;
 import java.util.Map;
 
 /**
  * {@inheritDoc}
+ *
  * @author Alex Krupnov
  */
 public class ApplicationServiceWsImpl extends WebServiceBase implements ApplicationService {
 
     /**
-     * Inits sevice with system configuration
+     * Inits service with system configuration
+     *
      * @param configuration a plugin config
      */
     public ApplicationServiceWsImpl(Configuration configuration) {
@@ -43,7 +45,7 @@ public class ApplicationServiceWsImpl extends WebServiceBase implements Applicat
     /**
      * {@inheritDoc}
      */
-    public LaunchInstanceResponse launch(String applicationId, String instanceName, Integer version, String environmentId, long destroyInterval, Map<String, Object> parameters) throws InvalidCredentialsException {
+    public LaunchInstanceResponse launch(String applicationId, String instanceName, Integer version, String environmentId, long destroyInterval, Map<String, Object> parameters) throws InvalidCredentialsException, ResourceNotFoundException, InvalidInputException, com.qubell.services.exceptions.NotAuthorizedException {
         WebClient client = getWebClient();
 
 
@@ -54,48 +56,75 @@ public class ApplicationServiceWsImpl extends WebServiceBase implements Applicat
                 addEnvironmentId(environmentId).
                 addParameters(parameters);
 
+
         try {
-            LaunchInstanceResponse response = client.path("applications").path(applicationId).path("launch").post(
+            LaunchInstanceResponse response = invoke(HttpMethod.POST, client.path("applications").path(applicationId).path("launch"),
                     builder.getRequest(), LaunchInstanceResponse.class);
             return response;
 
+        } catch (NotAuthorizedException nae) {
+            throw new com.qubell.services.exceptions.InvalidCredentialsException("The specified credentials are not valid");
         } catch (NotFoundException nfe) {
-            throw new InvalidCredentialsException("Invalid credentials ", nfe);
+            throw new ResourceNotFoundException("Specified application does not exist", nfe);
+        } catch (BadRequestException bre) {
+            throw new InvalidInputException("Requested manifest version does not exist", bre);
         } catch (WebApplicationException e) {
-            if (e.getResponse().getStatus() == 401 || e.getResponse().getStatus() == 404) {
-                throw new InvalidCredentialsException("Invalid credentials ", e);
+            int status = e.getResponse().getStatus();
+            if (status == 400) {
+                throw new InvalidInputException("Requested manifest version does not exist", e);
             }
+            if (status == 401) {
+                throw new com.qubell.services.exceptions.InvalidCredentialsException("The specified credentials are not valid");
+            }
+
+            if (status == 403) {
+                throw new com.qubell.services.exceptions.NotAuthorizedException("User is not authorized to access the application");
+            }
+
+            if (status == 404) {
+                throw new ResourceNotFoundException("Specified application does not exist");
+            }
+
             throw e;
         }
-
-
     }
 
     /**
      * {@inheritDoc}
      */
-    public UpdateManifestResponse updateManifest(String applicationId, String manifest) throws InvalidCredentialsException, InvalidInputException {
+    public UpdateManifestResponse updateManifest(String applicationId, String manifest) throws InvalidCredentialsException, InvalidInputException, ResourceNotFoundException, com.qubell.services.exceptions.NotAuthorizedException {
         WebClient client = getWebClient();
         client.header("Content-Type", "application/x-yaml");
         try {
-            UpdateManifestResponse response = client.path("applications").path(applicationId).path("manifest").put(
+            UpdateManifestResponse response = invoke(HttpMethod.PUT, client.path("applications").path(applicationId).path("manifest"),
                     manifest, UpdateManifestResponse.class
             );
 
             return response;
+        } catch (NotAuthorizedException nae) {
+            throw new com.qubell.services.exceptions.InvalidCredentialsException("The specified credentials are not valid");
         } catch (NotFoundException nfe) {
-            throw new InvalidCredentialsException("Invalid credentials ", nfe);
+            throw new ResourceNotFoundException("Specified application does not exist", nfe);
         } catch (BadRequestException bre) {
-            throw new InvalidInputException("Invalid input", bre);
+            throw new InvalidInputException("Manifest is invalid", bre);
         } catch (WebApplicationException e) {
-            if (e.getResponse().getStatus() == 400) {
-                throw new InvalidInputException("Invalid input", e);
+            int status = e.getResponse().getStatus();
+            if (status == 400) {
+                throw new InvalidInputException("Manifest is invalid", e);
             }
-            if (e.getResponse().getStatus() == 401 || e.getResponse().getStatus() == 404) {
-                throw new InvalidCredentialsException("Invalid credentials ", e);
+            if (status == 401) {
+                throw new com.qubell.services.exceptions.InvalidCredentialsException("The specified credentials are not valid");
             }
+
+            if (status == 403) {
+                throw new com.qubell.services.exceptions.NotAuthorizedException("User is not authorized to access the application");
+            }
+
+            if (status == 404) {
+                throw new ResourceNotFoundException("Specified application does not exist");
+            }
+
             throw e;
         }
-
     }
 }

@@ -17,6 +17,8 @@
 package com.qubell.services.ws;
 
 import com.qubell.services.exceptions.InvalidCredentialsException;
+import com.qubell.services.exceptions.NotAuthorizedException;
+import com.qubell.services.exceptions.ResourceNotFoundException;
 
 import java.util.List;
 
@@ -30,20 +32,28 @@ public interface OrganizationService {
     /**
      * Lists Qubell organizations for given account
      * @return not empty list of organizations
+     * @throws InvalidCredentialsException when user credentials are invalid
+     * @throws  NotAuthorizedException when user is not authorized to list organizations
      */
-    List<Organization> listOrganizations() throws InvalidCredentialsException;
+    List<Organization> listOrganizations() throws InvalidCredentialsException, NotAuthorizedException;
 
     /**
      * Returns list of applications for given organization
      * @param organization organization to use
      * @return list of apps
+     * @throws InvalidCredentialsException when user credentials are invalid
+     * @throws  NotAuthorizedException when user is not authorized to list applications
+     * @throws ResourceNotFoundException when organization does not exist
      */
-    List<Application> listApplications(Organization organization) throws InvalidCredentialsException;
+    List<Application> listApplications(Organization organization) throws InvalidCredentialsException, ResourceNotFoundException, NotAuthorizedException;
 
     /**
      * Returns list of environments for given organization
      * @param organization organization to use
      * @return list of environments
+     * @throws InvalidCredentialsException when user credentials are invalid
+     * @throws  NotAuthorizedException when user is not authorized to list environments
+     * @throws ResourceNotFoundException when organization does not exist
      */
-    List<Environment> listEnvironments(Organization organization) throws InvalidCredentialsException;
+    List<Environment> listEnvironments(Organization organization) throws InvalidCredentialsException, ResourceNotFoundException, NotAuthorizedException;
 }

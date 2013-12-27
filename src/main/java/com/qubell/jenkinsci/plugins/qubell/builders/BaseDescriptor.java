@@ -18,9 +18,11 @@ package com.qubell.jenkinsci.plugins.qubell.builders;
 
 import com.qubell.jenkinsci.plugins.qubell.JsonParser;
 import hudson.model.AbstractProject;
+import hudson.model.Result;
 import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.Builder;
 import hudson.util.FormValidation;
+import hudson.util.ListBoxModel;
 import org.apache.commons.lang.StringUtils;
 import org.kohsuke.stapler.QueryParameter;
 
@@ -57,20 +59,6 @@ public abstract class BaseDescriptor extends BuildStepDescriptor<Builder> {
     }
 
     /**
-     * Validates builder output path
-     * @param value path value to be testified
-     * @return jenkins validation container, see {@link FormValidation}
-     * @throws IOException
-     * @throws ServletException
-     */
-    public FormValidation doCheckOutputFilePath(@QueryParameter String value) throws IOException, ServletException {
-        if (StringUtils.isBlank(value)) {
-            return FormValidation.error("Output path can't be an empty string");
-        }
-        return FormValidation.ok();
-    }
-
-    /**
      * Validates extra parameters value: valid JSON map expression
      *
      * @param value string value of JSON object passed from form
@@ -86,6 +74,17 @@ public abstract class BaseDescriptor extends BuildStepDescriptor<Builder> {
 
         return FormValidation.ok();
     }
+
+    public ListBoxModel doFillFailureReactionItems() {
+        ListBoxModel items = new ListBoxModel();
+
+        items.add("Fail build", Result.FAILURE.toString());
+        items.add("Mark build unstable", Result.UNSTABLE.toString());
+        items.add("Ignore failure", Result.SUCCESS.toString());
+
+        return items;
+    }
+
 
     /**
      * Returns true if this task is applicable to the given project.

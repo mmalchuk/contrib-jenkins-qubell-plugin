@@ -41,5 +41,10 @@ limitations under the License.
     <f:entry field="outputFilePath" title="Relative path to command output file">
         <f:textbox/>
     </f:entry>
+    <f:advanced>
+        <f:entry name="failureReaction" title="When instance fails" field="failureReaction">
+            <f:select/>
+        </f:entry>
+    </f:advanced>
 
 </j:jelly>

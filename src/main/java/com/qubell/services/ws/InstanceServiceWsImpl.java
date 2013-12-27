@@ -17,18 +17,19 @@
 package com.qubell.services.ws;
 
 import com.qubell.jenkinsci.plugins.qubell.Configuration;
+import com.qubell.services.exceptions.InstanceBusyException;
 import com.qubell.services.exceptions.InvalidCredentialsException;
 import com.qubell.services.exceptions.InvalidInputException;
+import com.qubell.services.exceptions.ResourceNotFoundException;
 import org.apache.cxf.jaxrs.client.WebClient;
 
-import javax.ws.rs.BadRequestException;
-import javax.ws.rs.NotFoundException;
-import javax.ws.rs.WebApplicationException;
+import javax.net.ssl.SSLException;
+import javax.ws.rs.*;
+import javax.ws.rs.client.ClientException;
 import java.util.Map;
 
 /**
  * @author Alex Krupnov
- * @created 17.07.13 11:27
  */
 public class InstanceServiceWsImpl extends WebServiceBase implements InstanceService {
 
@@ -36,50 +37,68 @@ public class InstanceServiceWsImpl extends WebServiceBase implements InstanceSer
         super(configuration);
     }
 
-    public RunCommandResponse runCommand(String instanceId, String commandName, Map<String, Object> parameters) throws InvalidCredentialsException, InvalidInputException {
+    public RunCommandResponse runCommand(String instanceId, String commandName, Map<String, Object> parameters) throws InvalidCredentialsException, InvalidInputException, com.qubell.services.exceptions.NotAuthorizedException, ResourceNotFoundException, InstanceBusyException {
         WebClient client = getWebClient();
         RunCommandRequestBuilder builder = new RunCommandRequestBuilder();
         builder.addParameters(parameters);
 
         try {
-            RunCommandResponse response = client.path("instances").path(instanceId).path(commandName).post(
-                    builder.getRequest(), RunCommandResponse.class);
-
-            return response;
+            return invoke(HttpMethod.POST, client.path("instances").path(instanceId).path(commandName), builder.getRequest(), RunCommandResponse.class);
+        } catch (NotAuthorizedException nae) {
+            throw new com.qubell.services.exceptions.InvalidCredentialsException("The specified credentials are not valid");
         } catch (NotFoundException nfe) {
-            throw new InvalidCredentialsException("Invalid credentials ", nfe);
+            throw new ResourceNotFoundException("Specified instance does not exist", nfe);
         } catch (BadRequestException bre) {
-            throw new InvalidInputException("Invalid input", bre);
+            throw new InvalidInputException("Command is not supported", bre);
         } catch (WebApplicationException e) {
-            if (e.getResponse().getStatus() == 400) {
-                throw new InvalidInputException("Invalid input", e);
+            int status = e.getResponse().getStatus();
+            if (status == 400) {
+                throw new InvalidInputException("Command is not supported", e);
             }
-            if (e.getResponse().getStatus() == 401 || e.getResponse().getStatus() == 404) {
-                throw new InvalidCredentialsException("Invalid credentials ", e);
+            if (status == 401) {
+                throw new com.qubell.services.exceptions.InvalidCredentialsException("The specified credentials are not valid");
             }
+
+            if (status == 403) {
+                throw new com.qubell.services.exceptions.NotAuthorizedException("User not authorized to launch workflow");
+            }
+
+            if (status == 404) {
+                throw new ResourceNotFoundException("Specified instance does not exist");
+            }
+            if (status == 409) {
+                throw new InstanceBusyException("Not allowed to run workflow currently since another workflow is already running");
+            }
+
             throw e;
         }
-
-
     }
 
-
-    public InstanceStatusResponse getStatus(String instanceId) throws InvalidCredentialsException {
+    public InstanceStatusResponse getStatus(String instanceId) throws InvalidCredentialsException, ResourceNotFoundException, com.qubell.services.exceptions.NotAuthorizedException {
         WebClient client = getWebClient();
 
         try {
-            InstanceStatusResponse response = client.path("instances").path(instanceId).get(InstanceStatusResponse.class);
-
-            return response;
+            return invoke(HttpMethod.GET, client.path("instances").path(instanceId), InstanceStatusResponse.class);
+        } catch (NotAuthorizedException nae) {
+            throw new com.qubell.services.exceptions.InvalidCredentialsException("The specified credentials are not valid");
         } catch (NotFoundException nfe) {
-            throw new InvalidCredentialsException("Invalid credentials ", nfe);
+            throw new ResourceNotFoundException("Specified instance does not exist", nfe);
         } catch (WebApplicationException e) {
-            if (e.getResponse().getStatus() == 401 || e.getResponse().getStatus() == 404) {
-                throw new InvalidCredentialsException("Invalid credentials ", e);
+            int status = e.getResponse().getStatus();
+
+            if (status == 401) {
+                throw new com.qubell.services.exceptions.InvalidCredentialsException("The specified credentials are not valid");
             }
+
+            if (status == 403) {
+                throw new com.qubell.services.exceptions.NotAuthorizedException("User not authorized to launch workflow");
+            }
+
+            if (status == 404) {
+                throw new ResourceNotFoundException("Specified instance does not exist");
+            }
+
             throw e;
         }
-
-
     }
 }

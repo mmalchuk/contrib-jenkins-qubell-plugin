@@ -14,17 +14,24 @@
  * limitations under the License.
  */
 
-package com.qubell.services.ws;
+package com.qubell.jenkinsci.plugins.qubell.builders;
 
-import com.qubell.services.exceptions.*;
+import org.kohsuke.stapler.DataBoundConstructor;
 
-import java.util.Map;
+public class AsyncExecutionOptions {
+    private String jobId;
 
-/**
- * @author Alex Krupnov
- * @created 17.07.13 11:27
- */
-public interface InstanceService {
-    RunCommandResponse runCommand(String instanceId, String commandName, Map<String, Object> parameters) throws InvalidCredentialsException, InvalidInputException, NotAuthorizedException, ResourceNotFoundException, InstanceBusyException;
-    InstanceStatusResponse getStatus(String instanceId) throws InvalidCredentialsException, ResourceNotFoundException, NotAuthorizedException;
+    @DataBoundConstructor
+    public AsyncExecutionOptions(String jobId) {
+        this.jobId = jobId;
+    }
+
+    /**
+     * Identifier for the job, spawned by {@link RunCommandBuilder}, used to pick the job result later
+     *
+     * @return identifier of the job
+     */
+    public String getJobId() {
+        return jobId;
+    }
 }

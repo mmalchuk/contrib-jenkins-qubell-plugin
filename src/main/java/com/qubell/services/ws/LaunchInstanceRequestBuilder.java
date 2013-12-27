@@ -37,7 +37,7 @@ public class LaunchInstanceRequestBuilder extends AbstractRequestBuilder<LaunchI
      * @return builder itself
      */
     public LaunchInstanceRequestBuilder addVersion(Integer value) {
-        if (value > 0) {
+        if (value != null && value > 0) {
             targetFields.put(VERSION_KEY, value);
         }
         return this;

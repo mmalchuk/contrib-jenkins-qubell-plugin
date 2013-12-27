@@ -14,17 +14,21 @@
  * limitations under the License.
  */
 
-package com.qubell.services.ws;
-
-import com.qubell.services.exceptions.*;
-
-import java.util.Map;
+package com.qubell.services.exceptions;
 
 /**
+ * Thrown when Qubell instance is busy for new requests
  * @author Alex Krupnov
- * @created 17.07.13 11:27
  */
-public interface InstanceService {
-    RunCommandResponse runCommand(String instanceId, String commandName, Map<String, Object> parameters) throws InvalidCredentialsException, InvalidInputException, NotAuthorizedException, ResourceNotFoundException, InstanceBusyException;
-    InstanceStatusResponse getStatus(String instanceId) throws InvalidCredentialsException, ResourceNotFoundException, NotAuthorizedException;
+public class InstanceBusyException extends QubellServiceException {
+    public InstanceBusyException() {
+    }
+
+    public InstanceBusyException(String message) {
+        super(message);
+    }
+
+    public InstanceBusyException(String message, Throwable cause) {
+        super(message, cause);
+    }
 }

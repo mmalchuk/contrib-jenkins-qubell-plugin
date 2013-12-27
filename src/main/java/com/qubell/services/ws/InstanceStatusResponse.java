@@ -175,7 +175,6 @@ public class InstanceStatusResponse {
      * Instance return values
      * @return return values map
      */
-    @XmlElement(name = "return-values")
     public Map<String, Object> getReturnValues() {
         return returnValues;
     }
@@ -184,7 +183,6 @@ public class InstanceStatusResponse {
      * Sets return values
      * @param returnValues return values map
      */
-    @XmlElement(name = "return-values")
     public void setReturnValues(Map<String, Object> returnValues) {
         this.returnValues = returnValues;
     }
@@ -193,7 +191,6 @@ public class InstanceStatusResponse {
      * Instance error message
      * @return message or null when no error happened
      */
-    @XmlElement(name = "error-message")
     public String getErrorMessage() {
         return errorMessage;
     }
@@ -202,7 +199,6 @@ public class InstanceStatusResponse {
      * Sets error message
      * @param errorMessage message value
      */
-    @XmlElement(name = "error-message")
     public void setErrorMessage(String errorMessage) {
         this.errorMessage = errorMessage;
     }

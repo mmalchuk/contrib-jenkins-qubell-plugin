@@ -18,6 +18,8 @@ package com.qubell.services.ws;
 
 import com.qubell.services.exceptions.InvalidCredentialsException;
 import com.qubell.services.exceptions.InvalidInputException;
+import com.qubell.services.exceptions.NotAuthorizedException;
+import com.qubell.services.exceptions.ResourceNotFoundException;
 
 import java.util.Map;
 
@@ -29,15 +31,18 @@ public interface ApplicationService {
     /**
      * Launches new instance
      * @param applicationId app id
-     * @param instanceName instnance name (optional)
+     * @param instanceName instance name (optional)
      * @param version version to use (optional)
      * @param environmentId environment id (optional)
      * @param destroyInterval interval for destroy (optional)
      * @param parameters extra launch parameters
      * @return server response
      * @throws InvalidCredentialsException when credentials are invalid
+     * @throws ResourceNotFoundException when application is not found
+     * @throws InvalidInputException when required version of manifest does not exist
+     * @throws NotAuthorizedException when user is not authorized to launch the app
      */
-    LaunchInstanceResponse launch(String applicationId, String instanceName, Integer version, String environmentId, long destroyInterval, Map<String, Object> parameters) throws InvalidCredentialsException;
+    LaunchInstanceResponse launch(String applicationId, String instanceName, Integer version, String environmentId, long destroyInterval, Map<String, Object> parameters) throws InvalidCredentialsException, ResourceNotFoundException, InvalidInputException, NotAuthorizedException;
 
     /**
      * Updates application manifest
@@ -45,7 +50,9 @@ public interface ApplicationService {
      * @param manifest yaml manifest string
      * @return server response
      * @throws InvalidCredentialsException when credentials are invalid
-     * @throws InvalidInputException when manifes is invalid
+     * @throws ResourceNotFoundException when application is not found
+     * @throws InvalidInputException when manifest is invalid
+     * @throws NotAuthorizedException when user is not authorized to access the app
      */
-    UpdateManifestResponse updateManifest(String applicationId, String manifest) throws InvalidCredentialsException, InvalidInputException;
+    UpdateManifestResponse updateManifest(String applicationId, String manifest) throws InvalidCredentialsException, InvalidInputException, ResourceNotFoundException, NotAuthorizedException;
 }
