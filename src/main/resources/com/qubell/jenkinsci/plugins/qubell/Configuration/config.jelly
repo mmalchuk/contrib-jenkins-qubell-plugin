@@ -18,7 +18,7 @@ limitations under the License.
     <f:section title="Qubell Account Configuration">
         <f:entry title="API Url" field="url"
                  description="URL to your Qubell Instance">
-            <f:textbox default="https://express.qubell.com/"/>
+            <f:textbox default="${descriptor.DEFAULT_URL}"/>
         </f:entry>
 
         <f:entry title="Skip SSL Certificate validation" field="skipCertificateChecks"
@@ -37,7 +37,7 @@ limitations under the License.
 
         <f:entry title="Status Polling Interval" field="statusPollingInterval"
                  description="Interval for instance status polling (seconds)">
-            <f:textbox/>
+            <f:number default="${descriptor.DEFAULT_POLLING_INTERVAL}"/>
         </f:entry>
 
         <f:entry title="Enable API Message Logging" field="enableMessageLogging"
