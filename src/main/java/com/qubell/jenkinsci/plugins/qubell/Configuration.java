@@ -20,6 +20,7 @@ import hudson.Extension;
 import hudson.util.FormValidation;
 import jenkins.model.GlobalConfiguration;
 import net.sf.json.JSONObject;
+import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.QueryParameter;
 import org.kohsuke.stapler.StaplerRequest;
 
@@ -32,14 +33,15 @@ import java.io.IOException;
  */
 @Extension
 public class Configuration extends GlobalConfiguration {
-    private String url;
+    private String url = DEFAULT_URL;
     private String login;
     private String password;
-    private int statusPollingInterval;
+    private int statusPollingInterval = DEFAULT_POLLING_INTERVAL;
     private boolean skipCertificateChecks;
     private boolean enableMessageLogging = false;
 
-    private static final int DEFAULT_POLLING_INTERVAL = 5;
+    public static final int DEFAULT_POLLING_INTERVAL = 5;
+    public static final String DEFAULT_URL = "https://express.qubell.com/";
 
 
     /**
@@ -53,11 +55,12 @@ public class Configuration extends GlobalConfiguration {
         load();
     }
 
-
-    public Configuration(String url, String login, String password, boolean skipCertificateChecks, boolean enableMessageLogging) {
+    @DataBoundConstructor
+    public Configuration(String url, boolean skipCertificateChecks, String login, String password, int statusPollingInterval, boolean enableMessageLogging) {
         this.url = url;
         this.login = login;
         this.password = password;
+        this.statusPollingInterval = statusPollingInterval;
         this.skipCertificateChecks = skipCertificateChecks;
         this.enableMessageLogging = enableMessageLogging;
     }
@@ -123,7 +126,7 @@ public class Configuration extends GlobalConfiguration {
      */
     public int getStatusPollingInterval() {
         //Since int has default value, we can't use jelly's default for int fields, adding default on java code level
-        return statusPollingInterval != 0 ? statusPollingInterval : DEFAULT_POLLING_INTERVAL;
+        return statusPollingInterval;
     }
 
     /**
