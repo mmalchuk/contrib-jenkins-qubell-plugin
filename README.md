@@ -112,7 +112,7 @@ echo "MY_PROPERTY_1=$ret" >qubell.env  # File that is easy to use with "Inject e
 Q: What is "Wait for job completion" step  
 A: This step is used to syncronise commands that were executed with `Execute asynchronously` flag. We are experimenting with this and waiting you feedbacks.
 
-Q: Where I can find disastive list of features?  
+Q: Where I can find exhaustive list of features and explanation?  
 A: Unfortunatelly, we are in progress with documentation and will release as soon as, please contact support or use [issues](https://github.com/qubell/contrib-jenkins-qubell-plugin/issues) to get missed information.
 
 Contrib
@@ -120,6 +120,6 @@ Contrib
 
 This plugin welcomes contributors and is distributed unders Appache Licence, see [Licence](LICENSE)
 
-If you'd like to do implement or fix something, please create a pull request to `master` branch.
+If you'd like to implement or fix something, please create a pull request to `master` branch.
 
 To suggest any improvements or report bugs, create [an issue](https://github.com/qubell/contrib-jenkins-qubell-plugin/issues/new).
