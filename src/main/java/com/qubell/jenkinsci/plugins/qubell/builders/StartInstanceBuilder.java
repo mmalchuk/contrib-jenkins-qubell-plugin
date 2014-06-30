@@ -256,33 +256,59 @@ public class StartInstanceBuilder extends QubellBuilder {
          */
         public FormValidation doCheckApplicationId(@QueryParameter String value)
                 throws IOException, ServletException {
-            if (value.length() == 0)
-                return FormValidation.error("Please specify an application id");
-            return FormValidation.ok();
+            try {
+                new QubellFacadeImpl(Configuration.get()).getAllApplications();
+                if (value.length() == 0)
+                    return FormValidation.error("Please specify an application id");
+                return FormValidation.ok();
+            } catch (QubellServiceException qce) {
+                return FormValidation.error(qce.getMessage());
+            }
+        }
+
+        /**
+         * Performs on-the-fly validation of the form field environment id
+         *
+         * @param value This parameter receives the value that the user has typed.
+         * @return Indicates the outcome of the validation. This is sent to the browser.
+         */
+        public FormValidation doCheckEnvironmentId(@QueryParameter String value)
+                throws IOException, ServletException {
+            try {
+                new QubellFacadeImpl(Configuration.get()).getAllEnvironments();
+                return FormValidation.ok();
+            } catch (QubellServiceException qce) {
+                return FormValidation.error(qce.getMessage());
+            }
+
         }
 
         /**
          * Gets application list json for typeahead functionality
          *
          * @return json object for apps list
-         * @throws InvalidCredentialsException when credentials invalid
-         * @throws NotAuthorizedException      when user not authorized to list applications
-         * @throws ResourceNotFoundException   when organization not found
          */
-        public String getApplicationsTypeAheadJson() throws InvalidCredentialsException, NotAuthorizedException, ResourceNotFoundException {
-            return JsonParser.serialize(new QubellFacadeImpl(Configuration.get()).getAllApplications());
+        public String getApplicationsTypeAheadJson() {
+            try {
+                return JsonParser.serialize(new QubellFacadeImpl(Configuration.get()).getAllApplications());
+            } catch (QubellServiceException qce) {
+                // lets just silently swallow exception and hope that somebody is reading validation errors
+                return "{}";
+            }
         }
 
         /**
          * Gets environments list json for typeahead functionality
          *
          * @return json object for envs list
-         * @throws InvalidCredentialsException when credentials invalid
-         * @throws NotAuthorizedException      when user not authorized to list environments
-         * @throws ResourceNotFoundException   when organization not found
          */
-        public String getEnvironmentsTypeAheadJson() throws InvalidCredentialsException, NotAuthorizedException, ResourceNotFoundException {
-            return JsonParser.serialize(new QubellFacadeImpl(Configuration.get()).getAllEnvironments());
+        public String getEnvironmentsTypeAheadJson() {
+            try {
+                return JsonParser.serialize(new QubellFacadeImpl(Configuration.get()).getAllEnvironments());
+            } catch (QubellServiceException qce) {
+                // lets just silently swallow exception and hope that somebody is reading validation errors
+                return "{}";
+            }
         }
 
         /**

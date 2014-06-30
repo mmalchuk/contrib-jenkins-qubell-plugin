@@ -49,10 +49,10 @@ public abstract class BaseDescriptor extends BuildStepDescriptor<Builder> {
         try {
             int timeout = Integer.parseInt(value);
             if (timeout <= 0) {
-                return FormValidation.error("Timeout must a positive integer");
+                return FormValidation.error("Timeout must be a positive integer");
             }
         } catch (NumberFormatException nfe) {
-            return FormValidation.error("Timeout must a positive integer");
+            return FormValidation.error("Timeout must be a positive integer");
         }
 
         return FormValidation.ok();
