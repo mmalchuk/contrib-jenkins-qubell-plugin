@@ -25,6 +25,7 @@ import javax.ws.rs.HttpMethod;
 import javax.ws.rs.NotAuthorizedException;
 import javax.ws.rs.NotFoundException;
 import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.core.Response;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -51,20 +52,32 @@ public class OrganizationServiceWsImpl extends WebServiceBase implements Organiz
         WebClient client = getWebClient();
 
         try {
-            List<Organization> response = new ArrayList<Organization>(invokeAndGetCollection(HttpMethod.GET, client.path("organizations"), null, Organization.class));
-            return response;
-
+            return new ArrayList<Organization>(invokeAndGetCollection(
+                    HttpMethod.GET,
+                    client.path("organizations"),
+                    null,
+                    Organization.class
+            ));
         } catch (NotAuthorizedException nae) {
-            throw new com.qubell.services.exceptions.InvalidCredentialsException("The specified credentials are not valid");
+            throw new com.qubell.services.exceptions.InvalidCredentialsException(
+                    parseJsonErrorMessage(nae.getResponse(), "The specified credentials are not valid"),
+                    nae
+            );
         } catch (WebApplicationException e) {
-            int status = e.getResponse().getStatus();
+            Response response = e.getResponse();
+            int status = response.getStatus();
 
             if (status == 401) {
-                throw new com.qubell.services.exceptions.InvalidCredentialsException("The specified credentials are not valid");
+                throw new com.qubell.services.exceptions.InvalidCredentialsException(
+                        parseJsonErrorMessage(response, "The specified credentials are not valid"),
+                        e
+                );
             }
-
             if (status == 403) {
-                throw new com.qubell.services.exceptions.NotAuthorizedException("User not to list organizations");
+                throw new com.qubell.services.exceptions.NotAuthorizedException(
+                        parseJsonErrorMessage(response, "User not authorized to list organizations"),
+                        e
+                );
             }
             throw e;
         }
@@ -77,27 +90,44 @@ public class OrganizationServiceWsImpl extends WebServiceBase implements Organiz
         WebClient client = getWebClient();
 
         try {
-            List<Application> response = new ArrayList<Application>(invokeAndGetCollection(HttpMethod.GET, client.path("organizations").path(organization.getId()).
-                    path("applications"), null,
-                    Application.class));
-            return response;
+            return new ArrayList<Application>(invokeAndGetCollection(
+                    HttpMethod.GET,
+                    client.path("organizations").path(organization.getId()).
+                    path("applications"),
+                    null,
+                    Application.class
+            ));
 
         } catch (NotAuthorizedException nae) {
-            throw new com.qubell.services.exceptions.InvalidCredentialsException("The specified credentials are not valid");
+            throw new com.qubell.services.exceptions.InvalidCredentialsException(
+                    parseJsonErrorMessage(nae.getResponse(), "The specified credentials are not valid"),
+                    nae
+            );
         } catch (NotFoundException nfe) {
-            throw new ResourceNotFoundException("Specified organization doesn't exist", nfe);
+            throw new ResourceNotFoundException(
+                    parseJsonErrorMessage(nfe.getResponse(), "Specified organization doesn't exist"),
+                    nfe
+            );
         } catch (WebApplicationException e) {
-            int status = e.getResponse().getStatus();
+            Response response = e.getResponse();
+            int status = response.getStatus();
             if (status == 401) {
-                throw new com.qubell.services.exceptions.InvalidCredentialsException("The specified credentials are not valid");
+                throw new com.qubell.services.exceptions.InvalidCredentialsException(
+                        parseJsonErrorMessage(e.getResponse(), "The specified credentials are not valid"),
+                        e
+                );
             }
-
             if (status == 403) {
-                throw new com.qubell.services.exceptions.NotAuthorizedException("User not authorized to list applications");
+                throw new com.qubell.services.exceptions.NotAuthorizedException(
+                        parseJsonErrorMessage(e.getResponse(), "User not authorized to list applications"),
+                        e
+                );
             }
-
             if (status == 404) {
-                throw new ResourceNotFoundException("Specified organization doesn't exist");
+                throw new ResourceNotFoundException(
+                        parseJsonErrorMessage(e.getResponse(), "Specified organization doesn't exist"),
+                        e
+                );
             }
 
             throw e;
@@ -111,27 +141,45 @@ public class OrganizationServiceWsImpl extends WebServiceBase implements Organiz
         WebClient client = getWebClient();
 
         try {
-            List<Environment> response = new ArrayList<Environment>(invokeAndGetCollection(HttpMethod.GET, client.path("organizations").path(organization.getId()).
-                    path("environments"), null,
-                    Environment.class));
-            return response;
+            return new ArrayList<Environment>(invokeAndGetCollection(
+                    HttpMethod.GET,
+                    client.path("organizations").path(organization.getId()).
+                    path("environments"),
+                    null,
+                    Environment.class
+            ));
 
         } catch (NotAuthorizedException nae) {
-            throw new com.qubell.services.exceptions.InvalidCredentialsException("The specified credentials are not valid");
+            throw new com.qubell.services.exceptions.InvalidCredentialsException(
+                    parseJsonErrorMessage(nae.getResponse(), "The specified credentials are not valid"),
+                    nae
+            );
         } catch (NotFoundException nfe) {
-            throw new ResourceNotFoundException("Specified organization doesn't exist", nfe);
+            throw new ResourceNotFoundException(
+                    parseJsonErrorMessage(nfe.getResponse(), "Specified organization doesn't exist"),
+                    nfe
+            );
         } catch (WebApplicationException e) {
-            int status = e.getResponse().getStatus();
+            Response response = e.getResponse();
+            int status = response.getStatus();
             if (status == 401) {
-                throw new com.qubell.services.exceptions.InvalidCredentialsException("The specified credentials are not valid");
+                throw new com.qubell.services.exceptions.InvalidCredentialsException(
+                        parseJsonErrorMessage(response, "The specified credentials are not valid"),
+                        e
+                );
             }
-
             if (status == 403) {
-                throw new com.qubell.services.exceptions.NotAuthorizedException("User not authorized to list environments");
+                throw new com.qubell.services.exceptions.NotAuthorizedException(
+                        parseJsonErrorMessage(e.getResponse(), "User not authorized to list environments"),
+                        e
+                );
             }
 
             if (status == 404) {
-                throw new ResourceNotFoundException("Specified organization doesn't exist");
+                throw new ResourceNotFoundException(
+                        parseJsonErrorMessage(e.getResponse(), "Specified organization doesn't exist"),
+                        e
+                );
             }
 
             throw e;

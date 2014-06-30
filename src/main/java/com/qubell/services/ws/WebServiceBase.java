@@ -17,14 +17,12 @@
 package com.qubell.services.ws;
 
 import com.qubell.jenkinsci.plugins.qubell.Configuration;
-import hudson.cli.NoCheckTrustManager;
+import com.qubell.jenkinsci.plugins.qubell.JsonParser;
 import org.apache.cxf.configuration.jsse.TLSClientParameters;
-import org.apache.cxf.helpers.CastUtils;
 import org.apache.cxf.interceptor.LoggingInInterceptor;
 import org.apache.cxf.interceptor.LoggingOutInterceptor;
 import org.apache.cxf.jaxrs.client.WebClient;
 import org.apache.cxf.jaxrs.impl.RuntimeDelegateImpl;
-import org.apache.cxf.jaxrs.utils.ParameterizedCollectionType;
 import org.apache.cxf.transport.http.HTTPConduit;
 
 import javax.net.ssl.SSLException;
@@ -37,9 +35,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.ext.RuntimeDelegate;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 
 /**
  * Base Web Service for Qubell API integration
@@ -200,14 +196,39 @@ public abstract class WebServiceBase {
 
     }
 
+    protected String parseJsonErrorMessage(Response response, String defaultMessage) {
+        return isContentTypeJson(response) &&
+               hasBodyContent(response) ? prepareErrorMessage(parseJsonErrors(response.getEntity())) : defaultMessage;
+    }
+
+    private String prepareErrorMessage(List<String> errors) {
+        StringBuilder sb = new StringBuilder();
+        for (String error : errors) {
+            sb.append(error).append("\n");
+        }
+        // remove last \n
+        sb.deleteCharAt(sb.length() - 1);
+        return sb.toString();
+    }
+
+    private List<String> parseJsonErrors(Object entity) {
+        String body = String.valueOf(entity);
+        Map<String, Object> jsonMap = JsonParser.parseMap(body);
+        return (List<String>) (jsonMap != null &&
+                jsonMap.get("errors") != null &&
+                jsonMap.get("errors") instanceof List ? jsonMap.get("errors") : Collections.singletonList(body));
+    }
+
+    private boolean isContentTypeJson(Response response) {
+        String contentType = response.getHeaderString("Content-Type");
+        return contentType != null && contentType.startsWith("application/json");
+    }
+
+    private boolean hasBodyContent(Response response) {
+        return response.getEntity() != null;
+    }
 
     private boolean causedBySsl(Throwable ex) {
-        if (ex instanceof SSLException) {
-            return true;
-        }
-        if (ex.getCause() == null) {
-            return false;
-        }
-        return causedBySsl(ex.getCause());
+        return ex instanceof SSLException || ex.getCause() != null && causedBySsl(ex.getCause());
     }
 }

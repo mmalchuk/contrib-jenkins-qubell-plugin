@@ -23,7 +23,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Responsible for assemble and dissable of {@link com.qubell.services.Application} object
+ * Responsible for assemble and dissemble of {@link com.qubell.services.Application} object
  * @author Alex Krupnov
  */
 public class ApplicationTOA {
