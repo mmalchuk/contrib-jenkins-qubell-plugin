@@ -6,120 +6,147 @@ Jenkins Plug-in for Qubell Platform
 Functionality
 -------------
 
-Jenkins Plug-in for [Qubell Platform](http://qubell.com) allows to launch and manipulate Qubell instances as a part of a Jenkins build job.
+The Jenkins Plug-in for [Qubell Platform](http://qubell.com) allows you to launch and manipulate Qubell instances as part of a [Jenkins](http://jenkins-ci.org/) build job.
+The plug-in enables you to perform the following tasks:
 
-This plug-in provides the following functionality:
-
-* Configure access credentials as a part of global configuration.
+* Configure access credentials as part of a global configuration.
 * Launch a new instance from a manifest located in the source repository.
-* Execute a custom job on the newly-launched instance.
-* Destroy the newly-launched instance.
+* Execute a custom job on the newly launched instance.
+* Destroy the newly launched instance.
 * Execute a custom job on an instance specified by instance ID.
-* Fail the build job if any of the actions above is not finished after a configurable timeout.
+* Fail the build job if any of the preceding actions are incomplete after a configurable timeout.
 * Gather instance properties and job execution results in a JSON file to be consumed by the rest of the pipeline.
-* Macros resolve in all steps and fields, in form of `${PARAM_NAME}`
-* Application and Environment hints as you type
-* (Experimental) Async execution to speedup parallel instance execution and command processing
+
+Additionally, the following features are available: 
+
+* Macros, which resolve in all steps and fields (in the form `${PARAM_NAME}`).
+* Application and environment hints that are displayed as you type.
+* (Experimental) Async execution to speed up parallel instance execution and command processing.
 
 Compatibility
 -------------
 
-This plug-in uses [Qubell Platform API v. 1.3+](http://docs.qubell.com/api/contents.html) and can be used with Qubell Platform R19
-and above, either Express or Enterprise editions.
+[Qubell Platform API v. 1.3+](http://docs.qubell.com/api/contents.html) or Qubell Platform R19+ (Express and Enterprise).
 
 Getting Started
 ---------------
 
-Install, configure jobs with Qubell steps, enjoy... Details are following.
+The following sections will guide you through the process of installing and configuring the Jenkins plug-in
+for [Qubell Platform](http://qubell.com).
 
-### Install and setup ###
+### Installation ###
 
-This part should be done only once.
+1. If you have not already installed Jenkins, you can download the Java Web Archive (.war) or native package
+for your specific operating system from the [Jenkins website](http://jenkins-ci.org/).
+2. Download the current release of the Jenkins plug-in for Qubell Platform (.hpi) from [GitHub](https://github.com/qubell/contrib-jenkins-qubell-plugin/releases).
+3. Install the Jenkins plug-in. You can either install it:
+  * Via the Jenkins web UI by navigating to `Manage Jenkins > Manage Plugins > Advanced` and uploading the plug-in's .hpi file.
+  * By placing the .hpi file into the `$JENKINS_HOME/plugins` directory and restarting Jenkins.
 
-1. Install Plugin from [Releases](https://github.com/qubell/contrib-jenkins-qubell-plugin/releases)
-2. Configure credentials (1)
-   - Go to `Manage Jenkins` -> `Configure System`
-   - Scroll to `Qubell Account Configuration`
-   - Define and check: `API Url`, `Login`** and `Password` (2)
-   - Check `Status Polling Interval`(3), increase if appropriate
+    To verify that the plug-in has been installed correctly, open the Jenkins web UI and navigate to `Manage Jenkins > Manage Plugins > Installed`.
+You should see "Qubell Plugin" enabled in the list.
+
+### Credentials ###
+
+**NOTE:** These steps only need to be performed once. If your credentials are incorrect, you will not be able to access Qubell functionality.
+
+Set up your credentials by following the steps below.
+
+1. Within the Jenkins web UI, navigate to `Manage Jenkins > Configure System`.
+2. Scroll to `Qubell Account Configuration`.
+3. Input the `API URL` (URL to your Qubell instance), `Login` and `Password`. We suggest creating a deployment bot and using its credentials here.
+4. Check the `Status Polling Interval` (5 seconds by default) and increase if appropriate. This interval tells Jenkins how often it should poll
+Qubell for updates.
   
-*(1) -: Qubell steps will not function properly, if credentials are wrong*  
-*(2) -: We suggest to create a deployment bot and use its credentials here*  
-*(3) -: This interval corresponds how often jenkins will poll Qubell to get updates.*
+### Configuring a Job ###
 
-### Using steps ###
-
-Now you are ready to configure your job. To implement common: Launch Instance -> Run Command -> Destroy. Refere following steps.
-
-#### Launch Application Instance ####
-
-This step launces instance of selected `Application Id` in selected `Environment Id` (or default if kept empty). You may type in Application Name or Environment Name and UI will suggest ids that fit your input.
-
-In most cases you'll need one instance per job, and this step will store launched instance Id in context.
-
-Additionally you may configure:
-
-`Timeout` in seconds allows to limit launch time.
-
-`Extra parameters` allows to tune your job preciecly with any missed parameters including revision id, please refere Compatible Qubell Api.
-
-`Manifest Relative Path` is used when you need to upload manifest each time to you app, this is convinient when you store you manifest under Source Control Version. If not specified Manifest's will be used.
-
-`Relative path to command output file` this is file where last response of command will be stored, this is a json file.
-
-`When instance fails` - advance option to distinguish what to do if Launch fails, on default it will fail a job.
-
-#### Run Command ####
-
-This step execute `Name`-command of context instance or if specified of `Custom Instance Id`. The rest of parameters are the same to "Launch Application Instance" step.
-
-*Note: `Execute asynchronously` is experimental, refer [FAQ] for "Wait for job completion" step*
+To configure a new job within the Jenkins web UI, navigate to `New Item`, name your build, and select a build type. On the next screen, the following Qubell options are 
+available under the `Add Build Step` drop-down list:
+  
+  * Qubell: Destroy Instance
+  * Qubell: Launch Application Instance
+  * Qubell: Run Command
+  * Qubell: Wait for job completion
+  
+When one of these options is selected, the UI will expand to display configurable parameters.
 
 #### Destroy Instance ####
 
-This step destroys context instance or if specified of `Custom Instance Id`. `Timeout` and `When instance fails` here allows to speedup job time and do not fail a job if it is not as important.
+  * By default, the `Destroy Instance` step expects an instance ID to be created during the `Start Instance` step; however, you can specify a `Custom Instance ID` 
+and omit the `Start Instance` step.
+  * Specify a `Timeout` in seconds to limit destroy time.
+  * Select `Advanced...` to view the `When instance fails` drop-down list, which includes the following options:
+    * Fail build
+    * Mark build unstable
+    * Ignore failure
 
-Screenshot
-----------
-![Build steps to launch and execute a command](https://raw.github.com/wiki/qubell/contrib-jenkins-qubell-plugin/build-step-config.png)
+#### Launch Application Instance ####
+
+**NOTE:** In most cases, you will need one instance per job. This step will store the Launched Instance ID in context.
+
+  * The `Launch Application Instance` step will launch an instance based on the inputted `Application ID` and (optional) `Environment ID`. Note that matching applications 
+  are displayed as you type inside the `Application ID` field.
+  * Specify a `Timeout` in seconds to limit launch time.
+  * Tune your job by inputting `Extra Parameters` in json format(e.g. revision ID).
+  * The `Manifest Relative Path` field is used when you need to upload your manifest to the app each time and it is stored under source control version.
+  * The `Relative path to command output file` field identifies the location where the last command response will be stored (json file).
+  * Select `Advanced...` to view the `When instance fails` drop-down list, which includes the following options:
+    * Fail build
+    * Mark build unstable
+    * Ignore failure
+
+#### Run Command ####
+
+**NOTE:** `Execute asynchronously` is experimental. 
+
+  * Execute `Name` command of context instance or a `Custom Instance ID`.
+  * Specify a `Timeout` in seconds to limit launch time.
+  * Tune your job by inputting `Extra Parameters` in json format(e.g. revision ID).
+  * The `Manifest Relative Path` field is used when you need to upload your manifest to the app each time and it is stored under source control version.
+  * The `Relative path to command output file` field identifies the location where the last command response will be stored (json file).
+  * Select `Advanced...` to view the `When instance fails` drop-down list, which includes the following options:
+    * Fail build
+    * Mark build unstable
+    * Ignore failure
+
+#### Wait for Job Completion ####
+
+This step is used to synchronize commands that were executed with the `Execute asynchronously` flag. We are experimenting with this feature and gathering user feedback.
 
 FAQ
 ---
 
-Q: How to embed environment variable into Qubell steps  
-A: All steps support it, use form of `${ENVIRONMENT_VARIABLE_NAME}`, to inject desired value into step. All fields should support macroses. Please note, if you use it in json as a string variable you should surround it with double qoutes in case, if you need to embed object you should worry about all quotes yourself, keeping valid json.
+###How do I embed an environment variable into Qubell steps?###
+All steps support environment variables and all fields support macros. Use the form `${ENVIRONMENT_VARIABLE_NAME}` to inject a value into the step. 
+Note that if you use it in json as a string variable you should surround it with double qoutes in case, if you need to embed object you should worry about 
+all quotes yourself, keeping valid json.
 
-Q: How to deal with Returned Values (aka Instance Properties)  
-A: We suggest to use `Relative path to command output file`, since it is JSON formated, it is convinient ot use [./jq](http://stedolan.github.io/jq/) for parsing after qubell step. Following is the snippet how to use it now. We are looking for a ways how to make it simple from the box. 
+###How do I handle Returned Values (aka Instance Properties)?###
+We suggest using `Relative path to command output file`, which is conveniently formatted for json. Use [./jq](http://stedolan.github.io/jq/) for parsing after 
+the Qubell step, which is demonstrated below. 
 
-```bash
-JQ=bin/jq  # jq alias
-JSON_OUTPUT=returns.txt  # Qubell step output file
 
-#removes double quotes from stdin
-removeq () {
-  sed -e 's/^"\(.*\)"$/\1/'
-}
+    JQ=bin/jq  # jq alias
+    JSON_OUTPUT=returns.txt                                  # Qubell step output file
+    
+    removeq () {                                             # Removes double quotes from stdin
+      sed -e 's/^"\(.*\)"$/\1/'
+    }
 
-getvalue () {
-  ret=$(cat $JSON_OUTPUT | $JQ ".returnValues[\"$1\"] | if type == \"array\" and length == 1 then .[] else . end " | removeq )
-}
+    getvalue () {
+      ret=$(cat $JSON_OUTPUT | $JQ ".returnValues[\"$1\"] | if 
+      type == \"array\" and length == 1 then .[] else . end " | removeq )
+    }
 
-getvalue property_1
-echo "MY_PROPERTY_1=$ret" >qubell.env  # File that is easy to use with "Inject environment variables"
-```
+    getvalue property_1
+    echo "MY_PROPERTY_1=$ret" >qubell.env                    # Use with "Inject environment variables"
 
-Q: What is "Wait for job completion" step  
-A: This step is used to syncronise commands that were executed with `Execute asynchronously` flag. We are experimenting with this and waiting you feedbacks.
 
-Q: Where I can find exhaustive list of features and explanation?  
-A: Unfortunatelly, we are in progress with documentation and will release as soon as, please contact support or use [issues](https://github.com/qubell/contrib-jenkins-qubell-plugin/issues) to get missed information.
+###Where I can find additional information?###
+Please contact [Qubell Support](https://qubell.zendesk.com/hc/en-us) or review the [issues](https://github.com/qubell/contrib-jenkins-qubell-plugin/issues) page.
 
-Contrib
--------
+Contributors
+------------
 
-This plugin welcomes contributors and is distributed unders Appache Licence, see [Licence](LICENSE)
-
-If you'd like to implement or fix something, please create a pull request to `master` branch.
-
-To suggest any improvements or report bugs, create [an issue](https://github.com/qubell/contrib-jenkins-qubell-plugin/issues/new).
+We welcomes contributors to the Jenkins plug-in for Qubell Platform. This plug-in is distributed under an Apache License (see [Licence](LICENSE)). If you would 
+like to implement or fix code, please create a pull request to `master` branch. To suggest any improvements or report bugs, create [an issue](https://github.com/qubell/contrib-jenkins-qubell-plugin/issues/new).
