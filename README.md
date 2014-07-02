@@ -9,17 +9,17 @@ Functionality
 The Jenkins Plug-in for [Qubell Platform](http://qubell.com) allows you to launch and manipulate Qubell instances as part of a [Jenkins](http://jenkins-ci.org/) build job.
 The plug-in enables you to perform the following tasks:
 
-* Configure access credentials as part of a global configuration.
+* Configure access credentials as a part of global configuration.
 * Launch a new instance from a manifest located in the source repository.
 * Execute a custom job on the newly launched instance.
 * Destroy the newly launched instance.
 * Execute a custom job on an instance specified by instance ID.
-* Fail the build job if any of the preceding actions are incomplete after a configurable timeout.
+* Fail the build job if any action is incomplete after a configurable timeout.
 * Gather instance properties and job execution results in a JSON file to be consumed by the rest of the pipeline.
 
 Additionally, the following features are available: 
 
-* Macros, which resolve in all steps and fields (in the form `${PARAM_NAME}`).
+* Any field can refer to job parameters with the following syntax: ${PARAM_NAME}.
 * Application and environment hints that are displayed as you type.
 * (Experimental) Async execution to speed up parallel instance execution and command processing.
 
@@ -56,7 +56,7 @@ Set up your credentials by following the steps below.
 2. Scroll to `Qubell Account Configuration`.
 3. Input the `API URL` (URL to your Qubell instance), `Login` and `Password`. We suggest creating a deployment bot and using its credentials here.
 4. Check the `Status Polling Interval` (5 seconds by default) and increase if appropriate. This interval tells Jenkins how often it should poll
-Qubell for updates.
+Qubell for job status updates.
   
 ### Configuring a Job ###
 
@@ -74,7 +74,7 @@ When one of these options is selected, the UI will expand to display configurabl
 
   * By default, the `Destroy Instance` step expects an instance ID to be created during the `Start Instance` step; however, you can specify a `Custom Instance ID` 
 and omit the `Start Instance` step.
-  * Specify a `Timeout` in seconds to limit destroy time.
+  * Specify a `Timeout` in seconds to schedule instance destruction.
   * Select `Advanced...` to view the `When instance fails` drop-down list, which includes the following options:
     * Fail build
     * Mark build unstable
@@ -148,5 +148,5 @@ Please contact [Qubell Support](https://qubell.zendesk.com/hc/en-us) or review t
 Contributors
 ------------
 
-We welcomes contributors to the Jenkins plug-in for Qubell Platform. This plug-in is distributed under an Apache License (see [Licence](LICENSE)). If you would 
+We welcome contributors to the Jenkins plug-in for Qubell Platform. This plug-in is distributed under the Apache License (see [Licence](LICENSE)). If you would 
 like to implement or fix code, please create a pull request to `master` branch. To suggest any improvements or report bugs, create [an issue](https://github.com/qubell/contrib-jenkins-qubell-plugin/issues/new).
