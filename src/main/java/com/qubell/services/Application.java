@@ -18,6 +18,7 @@ package com.qubell.services;
 
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -44,9 +45,7 @@ public class Application implements TypeAheadDatum {
         List<String> tokens = new ArrayList<String>();
         tokens.add(id);
         if (name != null) {
-            for (String token : name.split(" ")) {
-                tokens.add(token);
-            }
+            Collections.addAll(tokens, name.split(" "));
         }
         return tokens;
     }
@@ -94,5 +93,21 @@ public class Application implements TypeAheadDatum {
      */
     public Organization getOrganization() {
         return organization;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        Application that = (Application) o;
+
+        return id.equals(that.id);
+
+    }
+
+    @Override
+    public int hashCode() {
+        return id.hashCode();
     }
 }

@@ -21,9 +21,6 @@ package com.qubell.services.exceptions;
  * @author Alex Krupnov
  */
 public class InvalidCredentialsException extends QubellServiceException {
-    public InvalidCredentialsException() {
-    }
-
     public InvalidCredentialsException(String message) {
         super(message);
     }

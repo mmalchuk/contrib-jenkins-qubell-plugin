@@ -20,6 +20,7 @@ import java.util.Map;
 
 /**
  * Instance status information
+ *
  * @author Alex Krupnov
  */
 public class InstanceStatus {
@@ -40,6 +41,7 @@ public class InstanceStatus {
 
     /**
      * Sets owning instance
+     *
      * @param instance instance reference
      */
     public void setInstance(Instance instance) {
@@ -48,6 +50,7 @@ public class InstanceStatus {
 
     /**
      * Version of app, running on instance
+     *
      * @return version value
      */
     public String getVersion() {
@@ -56,6 +59,7 @@ public class InstanceStatus {
 
     /**
      * Sets version of instance
+     *
      * @param version value of version
      */
     public void setVersion(String version) {
@@ -64,6 +68,7 @@ public class InstanceStatus {
 
     /**
      * Current instance status, enumeration
+     *
      * @return value of current status
      */
     public InstanceStatusCode getStatus() {
@@ -72,6 +77,7 @@ public class InstanceStatus {
 
     /**
      * Sets status
+     *
      * @param status status value
      */
     public void setStatus(InstanceStatusCode status) {
@@ -80,6 +86,7 @@ public class InstanceStatus {
 
     /**
      * Information about currently running workflow
+     *
      * @return workflow or null
      */
     public Workflow getCurrentWorkflow() {
@@ -88,6 +95,7 @@ public class InstanceStatus {
 
     /**
      * Sets current workflow
+     *
      * @param currentWorkflow workflow value
      */
     public void setCurrentWorkflow(Workflow currentWorkflow) {
@@ -96,6 +104,7 @@ public class InstanceStatus {
 
     /**
      * Error message, populated when error happened
+     *
      * @return message or null
      */
     public String getErrorMessage() {
@@ -104,6 +113,7 @@ public class InstanceStatus {
 
     /**
      * Sets error message
+     *
      * @param errorMessage error message value
      */
     public void setErrorMessage(String errorMessage) {
@@ -112,6 +122,7 @@ public class InstanceStatus {
 
     /**
      * Instance return values map
+     *
      * @return nullable list of instance return values
      */
     public Map<String, Object> getReturnValues() {
@@ -120,6 +131,7 @@ public class InstanceStatus {
 
     /**
      * Sets instance return values
+     *
      * @param returnValues return values map
      */
     public void setReturnValues(Map<String, Object> returnValues) {
@@ -128,6 +140,7 @@ public class InstanceStatus {
 
     /**
      * Application, running by instance
+     *
      * @return app information
      */
     public Application getApplication() {
@@ -136,9 +149,36 @@ public class InstanceStatus {
 
     /**
      * Sets instance application
+     *
      * @param application application value
      */
     public void setApplication(Application application) {
         this.application = application;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        InstanceStatus that = (InstanceStatus) o;
+
+        return application.equals(that.application)
+                && currentWorkflow.equals(that.currentWorkflow)
+                && instance.equals(that.instance)
+                && returnValues.equals(that.returnValues)
+                && status == that.status
+                && version.equals(that.version);
+    }
+
+    @Override
+    public int hashCode() {
+        int result = instance.hashCode();
+        result = 31 * result + version.hashCode();
+        result = 31 * result + status.hashCode();
+        result = 31 * result + currentWorkflow.hashCode();
+        result = 31 * result + returnValues.hashCode();
+        result = 31 * result + application.hashCode();
+        return result;
     }
 }

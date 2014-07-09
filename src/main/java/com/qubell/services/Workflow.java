@@ -62,5 +62,25 @@ public class Workflow {
     public List<WorkflowStep> getSteps() {
         return steps;
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        Workflow workflow = (Workflow) o;
+
+        return name.equals(workflow.name)
+                && status == workflow.status
+                && steps.equals(workflow.steps);
+    }
+
+    @Override
+    public int hashCode() {
+        int result = name.hashCode();
+        result = 31 * result + status.hashCode();
+        result = 31 * result + steps.hashCode();
+        return result;
+    }
 }
 
