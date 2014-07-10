@@ -60,4 +60,25 @@ public class WorkflowStep {
     public int getPercentComplete() {
         return percentComplete;
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        WorkflowStep that = (WorkflowStep) o;
+
+        return percentComplete == that.percentComplete
+                && name.equals(that.name)
+                && status == that.status;
+
+    }
+
+    @Override
+    public int hashCode() {
+        int result = name.hashCode();
+        result = 31 * result + status.hashCode();
+        result = 31 * result + percentComplete;
+        return result;
+    }
 }

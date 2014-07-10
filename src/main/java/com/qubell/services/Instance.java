@@ -55,4 +55,20 @@ public class Instance {
     public String getName() {
         return name;
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        Instance instance = (Instance) o;
+
+        return id.equals(instance.id);
+
+    }
+
+    @Override
+    public int hashCode() {
+        return id.hashCode();
+    }
 }

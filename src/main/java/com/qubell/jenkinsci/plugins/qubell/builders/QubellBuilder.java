@@ -181,48 +181,70 @@ public abstract class QubellBuilder extends Builder {
      * @throws InvalidCredentialsException when credentials in configuration are invalid
      * @throws InterruptedException        when wait was interrupted
      */
-    private boolean waitForInstanceStatus(PrintStream buildLog, Instance instance) throws InvalidCredentialsException, InterruptedException, ResourceNotFoundException, NotAuthorizedException {
+    private boolean waitForInstanceStatus(PrintStream buildLog, Instance instance) throws QubellServiceException, InterruptedException {
         logMessage(buildLog, "Waiting for instance status %s with timeout of %d seconds", expectedStatus, timeout);
 
         StopWatch sw = new StopWatch();
         sw.start();
 
         int attempt = 0;
+        int similarAttemptsCount = 0;
+
+        InstanceStatus previousStatus = null;
 
         while (true) {
             attempt++;
-            logMessage(buildLog, "Attempt #%d", attempt);
-            if (sw.getTime() >= timeout * 1000) {
-                logMessage(buildLog, "Instance did not return expected status (%s) within given timeout of %s seconds", expectedStatus, timeout);
 
-                return false;
+            InstanceStatus status;
+            try {
+                status = getServiceFacade().getStatus(instance);
+            } catch (QubellServiceException qse) {
+                // Lets report similar attempts (if any) when something went wrong
+                reportSimilarAttempts(buildLog, similarAttemptsCount);
+                throw qse;
             }
 
-            InstanceStatusCode instanceStatus = getInstanceStatus(buildLog, instance).getStatus();
-            if (instanceStatus.equals(expectedStatus)) {
+            if (status.equals(previousStatus)) {
+                similarAttemptsCount++;
+            } else {
+                reportSimilarAttempts(buildLog, similarAttemptsCount);
+                similarAttemptsCount = 0;
+
+                reportInstanceStatus(buildLog, status, attempt);
+            }
+
+            InstanceStatusCode instanceStatusCode = status.getStatus();
+
+            if (instanceStatusCode == expectedStatus) {
                 return true;
-            }
-            else if(instanceStatus.equals(InstanceStatusCode.FAILED)){
+            } else if (instanceStatusCode == InstanceStatusCode.FAILED) {
+                reportSimilarAttempts(buildLog, similarAttemptsCount);
                 //In case Failed status is not actually what we expect, considering it an issue
                 logMessage(buildLog, "Instance returned Failed status, aborting further status wait...");
                 return false;
             }
 
-            Thread.sleep(getConfiguration().getStatusPollingInterval() * 1000);
-        }
+            previousStatus = status;
 
+            Thread.sleep(getConfiguration().getStatusPollingInterval() * 1000);
+
+            if (sw.getTime() >= timeout * 1000) {
+                reportSimilarAttempts(buildLog, similarAttemptsCount);
+                logMessage(buildLog, "Instance did not return expected status (%s) within given timeout of %s seconds", expectedStatus, timeout);
+
+                return false;
+            }
+        }
     }
 
-    /**
-     * Retrieves status of instance and outputs parameters to the log
-     *
-     * @param buildLog build log
-     * @param instance application instance to be queried for the status
-     * @return instance status
-     * @throws InvalidCredentialsException when configuration contains invalid credentials
-     */
-    protected InstanceStatus getInstanceStatus(PrintStream buildLog, Instance instance) throws InvalidCredentialsException, ResourceNotFoundException, NotAuthorizedException {
-        InstanceStatus status = getServiceFacade().getStatus(instance);
+    private void reportSimilarAttempts(PrintStream buildLog, int similarAttemptsCount) {
+        if (similarAttemptsCount > 0) {
+            logMessage(buildLog, "%d similar attempts passed", similarAttemptsCount);
+        }
+    }
+
+    private void reportInstanceStatus(PrintStream buildLog, InstanceStatus status, int attempt) {
+        logMessage(buildLog, "Attempt #%d", attempt);
 
         logMessage(buildLog, "Instance status %s", status.getStatus());
 
@@ -245,8 +267,6 @@ public abstract class QubellBuilder extends Builder {
         if (!StringUtils.isBlank(status.getErrorMessage())) {
             logMessage(buildLog, "ERROR instance status returned error %s", status.getErrorMessage());
         }
-
-        return status;
     }
 
     /**
