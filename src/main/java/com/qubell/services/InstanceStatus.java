@@ -164,9 +164,9 @@ public class InstanceStatus {
         InstanceStatus that = (InstanceStatus) o;
 
         return application.equals(that.application)
-                && currentWorkflow.equals(that.currentWorkflow)
+                && currentWorkflow == null ? that.currentWorkflow == null : currentWorkflow.equals(that.currentWorkflow)
                 && instance.equals(that.instance)
-                && returnValues.equals(that.returnValues)
+                && returnValues == null ? that.returnValues == null : returnValues.equals(that.returnValues)
                 && status == that.status
                 && version.equals(that.version);
     }
@@ -176,8 +176,8 @@ public class InstanceStatus {
         int result = instance.hashCode();
         result = 31 * result + version.hashCode();
         result = 31 * result + status.hashCode();
-        result = 31 * result + currentWorkflow.hashCode();
-        result = 31 * result + returnValues.hashCode();
+        result = 31 * result + (currentWorkflow != null ? currentWorkflow.hashCode() : 0);
+        result = 31 * result + (returnValues != null ? returnValues.hashCode() : 0);
         result = 31 * result + application.hashCode();
         return result;
     }
