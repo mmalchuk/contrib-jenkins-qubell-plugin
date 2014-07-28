@@ -52,6 +52,8 @@ public enum InstanceStatusCode {
     /**
      * Instance destroyed
      */
-    DESTROYED
+    DESTROYED,
+
+    UNKNOWN
 }
 
