@@ -155,16 +155,16 @@ public abstract class WebServiceBase {
      */
     protected <T> T invoke(String method, WebClient client, Object body, Class<T> responseClass) {
         int attempt = 0;
+        if (method.equals(HttpMethod.POST)) {
+            return client.post(body, responseClass);
+        }
+        if(method.equals(HttpMethod.PUT)){
+            return client.put(body, responseClass);
+        }
         while (true) {
             try {
                 if (method.equals(HttpMethod.GET)) {
                     return client.get(responseClass);
-                }
-                if (method.equals(HttpMethod.POST)) {
-                    return client.post(body, responseClass);
-                }
-                if(method.equals(HttpMethod.PUT)){
-                    return client.put(body, responseClass);
                 }
             } catch (ClientException ex) {
                 if (attempt > 5 || !causedBySsl(ex)) {

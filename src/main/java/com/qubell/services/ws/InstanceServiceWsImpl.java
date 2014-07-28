@@ -22,8 +22,10 @@ import com.qubell.services.exceptions.InvalidCredentialsException;
 import com.qubell.services.exceptions.InvalidInputException;
 import com.qubell.services.exceptions.ResourceNotFoundException;
 import org.apache.cxf.jaxrs.client.WebClient;
+import org.apache.cxf.transport.http.HTTPConduit;
 
 import javax.ws.rs.*;
+import javax.ws.rs.client.ClientException;
 import javax.ws.rs.core.Response;
 import java.util.Map;
 
@@ -31,6 +33,16 @@ import java.util.Map;
  * @author Alex Krupnov
  */
 public class InstanceServiceWsImpl extends WebServiceBase implements InstanceService {
+
+    public static final InstanceStatusResponse REQUEST_TIMEOUT_RESPONSE = new InstanceStatusResponse();
+    static {
+        // Some definitely non-existent ID is enough to compare with any other instance
+        REQUEST_TIMEOUT_RESPONSE.setApplicationId("some non-existent id");
+        REQUEST_TIMEOUT_RESPONSE.setErrorMessage(Response.Status.REQUEST_TIMEOUT.getReasonPhrase());
+        REQUEST_TIMEOUT_RESPONSE.InstanceStatus(InstanceStatus.Unknown);
+        REQUEST_TIMEOUT_RESPONSE.setVersion("Stub version");
+        REQUEST_TIMEOUT_RESPONSE.setId("Stub Id");
+    }
 
     public InstanceServiceWsImpl(Configuration configuration) {
         super(configuration);
@@ -120,6 +132,8 @@ public class InstanceServiceWsImpl extends WebServiceBase implements InstanceSer
                     parseJsonErrorMessage(nfe.getResponse(), "Specified instance does not exist"),
                     nfe
             );
+        } catch (ClientException ce) {
+            return REQUEST_TIMEOUT_RESPONSE;
         } catch (WebApplicationException e) {
             Response response = e.getResponse();
             int status = e.getResponse().getStatus();
@@ -141,6 +155,9 @@ public class InstanceServiceWsImpl extends WebServiceBase implements InstanceSer
                         parseJsonErrorMessage(response, "Specified instance does not exist"),
                         e
                 );
+            }
+            if (status == 408) {
+                return REQUEST_TIMEOUT_RESPONSE;
             }
 
             throw e;

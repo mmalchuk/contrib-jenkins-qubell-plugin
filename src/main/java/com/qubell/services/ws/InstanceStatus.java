@@ -31,5 +31,6 @@ public enum InstanceStatus {
     Canceled,
     Suspended,
     Destroying,
-    Destroyed
+    Destroyed,
+    Unknown
 }
