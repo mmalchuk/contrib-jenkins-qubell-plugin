@@ -163,22 +163,23 @@ public class InstanceStatus {
 
         InstanceStatus that = (InstanceStatus) o;
 
-        return application.equals(that.application)
-                && currentWorkflow == null ? that.currentWorkflow == null : currentWorkflow.equals(that.currentWorkflow)
-                && instance.equals(that.instance)
-                && returnValues == null ? that.returnValues == null : returnValues.equals(that.returnValues)
-                && status == that.status
-                && version.equals(that.version);
+        return (application == null ? that.application == null : application.equals(that.application))
+               && (currentWorkflow == null ? that.currentWorkflow == null : currentWorkflow.equals(that.currentWorkflow))
+               && (instance == null ? that.instance == null : instance.equals(that.instance))
+               && (returnValues == null ? that.returnValues == null : returnValues.equals(that.returnValues))
+               && status == that.status
+               && (version == null ? that.version == null : version.equals(that.version));
+
     }
 
     @Override
     public int hashCode() {
-        int result = instance.hashCode();
-        result = 31 * result + version.hashCode();
-        result = 31 * result + status.hashCode();
+        int result = instance != null ? instance.hashCode() : 0;
+        result = 31 * result + (version != null ? version.hashCode() : 0);
+        result = 31 * result + (status != null ? status.hashCode() : 0);
         result = 31 * result + (currentWorkflow != null ? currentWorkflow.hashCode() : 0);
         result = 31 * result + (returnValues != null ? returnValues.hashCode() : 0);
-        result = 31 * result + application.hashCode();
+        result = 31 * result + (application != null ? application.hashCode() : 0);
         return result;
     }
 }

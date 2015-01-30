@@ -18,6 +18,7 @@ package com.qubell.services.ws;
 
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
+import java.util.List;
 
 /**
  * Response of instance launch WS call
@@ -28,6 +29,10 @@ import javax.xml.bind.annotation.XmlType;
 public class LaunchInstanceResponse {
 
     private String id;
+
+    private List<String> warnings;
+
+    private List<String> errors;
 
     /**
      * Gets instance id
@@ -44,4 +49,21 @@ public class LaunchInstanceResponse {
     public void setId(String id) {
         this.id = id;
     }
+
+    public List<String> getWarnings() {
+        return warnings;
+    }
+
+    public void setWarnings(List<String> warnings) {
+        this.warnings = warnings;
+    }
+
+    public List<String> getErrors() {
+        return errors;
+    }
+
+    public void setErrors(List<String> errors) {
+        this.errors = errors;
+    }
+
 }
